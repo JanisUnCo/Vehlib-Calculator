@@ -327,7 +327,7 @@ public class Main {
 			comboBoxElements = new String[counter];
 			for (int i = 0; i < comboBoxElements.length; i++) {
 				comboBoxElements[i] = categoryNameList.get(i);
-			}
+123
 			scan.close();
 			setConfigValuesToIntegers();
 			} catch (Exception e) {
