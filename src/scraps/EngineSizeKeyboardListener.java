@@ -1,4 +1,4 @@
-package testing;
+package scraps;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;

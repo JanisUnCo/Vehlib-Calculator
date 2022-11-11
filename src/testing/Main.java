@@ -17,16 +17,29 @@ import java.io.File;
 import javax.swing.JComboBox;
 
 public class Main {
-	static String root = "C:\\Users\\janis\\eclipse-workspace\\VehlibCalculator\\src\\testing\\";
+	static String root = System.getProperty("user.dir") + "\\src\\testing\\";
+
+	public static Font tahomaBold = new Font("Tahoma", Font.BOLD, 10);
+	public static Font tahomaItalic = new Font("Tahoma", Font.ITALIC, 10);
+	
+	public static Bound leftColLowerLblBound = new Bound(42, 123, 144, 13);
+	public static Bound leftColUpperLblBound = new Bound(42, 52, 144, 13);
+	public static Bound rightColLowerLblBound = new Bound(171, 123, 144, 13);
+	
+	public static Color invalidTextColor = Color.red;
+	public static Color generalTextColor = Color.black;
+
+	public static boolean isEngineSizeSafe;
+	public static boolean isPriceSafe;
+	public static double lastCat; // double instead of int, otherwise I will need to code more in one of the methods
+	
+	// GUI
 	
 	static JFrame frame;
 	static JPanel panel;
 	static JTextField engineSize;
 	static JTextField priceField;
 	
-	public static boolean isEngineSizeSafe;
-	public static boolean isPriceSafe;
-	public static double lastCat; // double instead of int, otherwise I will need to code more in one of the methods
 	public static JComboBox comboBox; 
 	
 	private static JLabel lblOriginalPrice;
@@ -80,6 +93,7 @@ public class Main {
 
 	
 	public static void main(String[] args) {
+		System.out.println(root);
 		initializeStart();
 		startGUI();	
 		
@@ -90,98 +104,52 @@ public class Main {
 	}
 	
 	static void addLabels() {
+		int yUpperLblPeriod = 29;
+		int yLowerLblPeriod = 23;
 		
-		lblOriginalPrice = new JLabel("Original Price");
-		lblOriginalPrice.setFont(new Font("Tahoma", Font.BOLD, 10));
-		lblOriginalPrice.setBounds(42, 123, 144, 13);
-		panel.add(lblOriginalPrice);
+		createLabel(panel, lblPrice, "Car price:", tahomaBold, leftColUpperLblBound, yUpperLblPeriod, 0);
+		createLabel(panel, lblEngineSize, "Engine size (*.*L):", tahomaBold, leftColUpperLblBound, yUpperLblPeriod, 1);
 		
-		lblGamePrice = new JLabel("In-Game Price");
-		lblGamePrice.setFont(new Font("Tahoma", Font.BOLD, 10));
-		lblGamePrice.setBounds(42, 146, 144, 13);
-		panel.add(lblGamePrice);
+		createLabel(panel, lblOriginalPrice, "Original Price", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 0);
+		createLabel(panel, lblGamePrice, "In-game Price", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 1);
+		createLabel(panel, lblTax, "Tax", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 2);
+		createLabel(panel, lblTopSpeed, "Top Speed", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 3);
+		createLabel(panel, lblAcceleration, "Acceleration", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 4);
+		createLabel(panel, lblEngineInertia, "Engine inertia", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 5);
 		
-		lblTax = new JLabel("Tax");
-		lblTax.setFont(new Font("Tahoma", Font.BOLD, 10));
-		lblTax.setBounds(42, 169, 144, 13);
-		panel.add(lblTax);
-		
-		lblTopSpeed = new JLabel("Top Speed");
-		lblTopSpeed.setFont(new Font("Tahoma", Font.BOLD, 10));
-		lblTopSpeed.setBounds(42, 191, 144, 13);
-		panel.add(lblTopSpeed);
-		
-		lblAcceleration = new JLabel("Acceleration");
-		lblAcceleration.setFont(new Font("Tahoma", Font.BOLD, 10));
-		lblAcceleration.setBounds(42, 214, 144, 13);
-		panel.add(lblAcceleration);
-		
-		lblEngineInertia = new JLabel("Engine Inertia");
-		lblEngineInertia.setFont(new Font("Tahoma", Font.BOLD, 10));
-		lblEngineInertia.setBounds(42, 237, 144, 13);
-		panel.add(lblEngineInertia);
-
-		lblPrice = new JLabel("Car price:");
-		lblPrice.setFont(new Font("Tahoma", Font.BOLD, 10));
-		lblPrice.setBounds(42, 81, 144, 13);
-		panel.add(lblPrice);
-		
-		lblEngineSize = new JLabel("Engine size (*.*L):");
-		lblEngineSize.setFont(new Font("Tahoma", Font.BOLD, 10));
-		lblEngineSize.setBounds(42, 52, 144, 13);
-		panel.add(lblEngineSize);
-
 //		##################################################################
-		
-		lblOriginalPriceValue = new JLabel("$ "+String.valueOf(originalPrice));
-		lblOriginalPriceValue.setFont(new Font("Tahoma", Font.ITALIC, 10));
-		lblOriginalPriceValue.setBounds(171, 123, 144, 13);
-		panel.add(lblOriginalPriceValue);
-		
-		lblGamePriceValue = new JLabel("$ "+String.valueOf(gamePrice));
-		lblGamePriceValue.setFont(new Font("Tahoma", Font.ITALIC, 10));
-		lblGamePriceValue.setBounds(171, 146, 144, 13);
-		panel.add(lblGamePriceValue);
-		
-		lblTaxValue = new JLabel("$ "+String.valueOf(tax));
-		lblTaxValue.setFont(new Font("Tahoma", Font.ITALIC, 10));
-		lblTaxValue.setBounds(171, 169, 144, 13);
-		panel.add(lblTaxValue);
-		
-		lblTopSpeedValue = new JLabel(String.valueOf(topSpeed)+" KM/h");
-		lblTopSpeedValue.setFont(new Font("Tahoma", Font.ITALIC, 10));
-		lblTopSpeedValue.setBounds(171, 191, 144, 13);
-		panel.add(lblTopSpeedValue);
-		
-		lblAccelerationValue = new JLabel(String.valueOf(acceleration));
-		lblAccelerationValue.setFont(new Font("Tahoma", Font.ITALIC, 10));
-		lblAccelerationValue.setBounds(171, 214, 144, 13);
-		panel.add(lblAccelerationValue);
-		
-		lblEngineInertiaValue = new JLabel(String.valueOf(engineInertia));
-		lblEngineInertiaValue.setFont(new Font("Tahoma", Font.ITALIC, 10));
-		lblEngineInertiaValue.setBounds(171, 237, 144, 13);
-		panel.add(lblEngineInertiaValue);
-		
+//		You might ask shy the names so weird? In case I decide to make a saving system,
+//		where you could see the old values after closing the app.
+		createLabel(panel, lblOriginalPriceValue, "$ "+String.valueOf(originalPrice), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 0);
+		createLabel(panel, lblGamePriceValue, "$ "+String.valueOf(gamePrice), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 1);
+		createLabel(panel, lblTaxValue, "$ "+String.valueOf(tax), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 2);
+		createLabel(panel, lblTopSpeedValue, String.valueOf(topSpeed)+" KM/h", tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 3);
+		createLabel(panel, lblAccelerationValue, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 4);
+		createLabel(panel, lblEngineInertiaValue, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 5);
 	
+	}
+	
+	static void createLabel (JPanel parentPanel, JLabel lblName, String lblText, 
+							 Font lblFont, Bound bounds, int yPeriod, int position) {
+		lblName = new JLabel(lblText);
+		lblName.setFont(lblFont);
+		lblName.setBounds(bounds.x, bounds.y + yPeriod * position, 
+				bounds.width, bounds.height);
+		parentPanel.add(lblName);
 	}
 
 	static void addComboBox() {
-//		ComboBoxMouseListener listener = new ComboBoxMouseListener();
 		ComboBoxActionListener listener = new ComboBoxActionListener();
 		comboBox = new JComboBox(comboBoxElements);
 		comboBox.setBounds(42, 18, 273, 21);
 		panel.add(comboBox);
-//		comboBox.addMouseListener(listener);
 		comboBox.addActionListener(listener);
 		
-	
 	}
 	
 	static void addFields() {
 		KeyboardListener listener = new KeyboardListener();
 		
-
 		engineSize = new JTextField(0);
 		engineSize.setBounds(171, 49, 144, 19);
 		panel.add(engineSize);
@@ -235,10 +203,9 @@ public class Main {
 			internalPercent = internalPrice / (maxPrice - minPrice) * (internalEki);
 			
 			tax = (minTax + (maxTax - minTax) * internalPercent);
-
 			topSpeed = (minTopSpeed + ((maxTopSpeed - minTopSpeed) * internalPercent));
 			acceleration = (minAcc + ((maxAcc - minAcc) * internalPercent));
-			engineInertia = (minInertia + ((maxInertia - minInertia) * internalPercent));
+			engineInertia = (minInertia + ((maxInertia - minInertia) * internalPercent / 2));
 			
 			gamePrice = price2 + (price2 / 100 * priceKoef);
 			lblOriginalPriceValue.setText("$ "+String.valueOf(price2));
@@ -327,7 +294,7 @@ public class Main {
 			comboBoxElements = new String[counter];
 			for (int i = 0; i < comboBoxElements.length; i++) {
 				comboBoxElements[i] = categoryNameList.get(i);
-123
+			}
 			scan.close();
 			setConfigValuesToIntegers();
 			} catch (Exception e) {
@@ -345,7 +312,7 @@ public class Main {
 			Scanner scan = new Scanner(file);
 			while (scan.hasNextLine()) {
 				String line = scan.nextLine();
-				if (line.equals("[Category "+(int)(catNum+1)+"]")) {
+				if (line.contains("[Category "+(int)(catNum+1))) {
 					System.out.println("Found line for cat!");
 					for (int i = 0; i < 14; i++) {
 						String []_line = scan.nextLine().split("=");
@@ -373,7 +340,7 @@ public class Main {
 				intPrice > maxPrice || 
 				isDoubleRegex(priceField.getText())) {
 				
-				priceField.setForeground(Color.red);		
+				priceField.setForeground(invalidTextColor);		
 				isPriceSafe = false;
 				return;
 			}
@@ -382,7 +349,7 @@ public class Main {
 				intPrice <= maxPrice) {
 				
 //				System.out.println("PRICE: "+price);
-				priceField.setForeground(Color.black);
+				priceField.setForeground(generalTextColor);
 				isPriceSafe = true;
 			}
 			
@@ -392,7 +359,7 @@ public class Main {
 			
 		} catch (Exception e2) {
 			System.out.println("Invalid char in Price!");
-			priceField.setForeground(Color.red);		
+			priceField.setForeground(invalidTextColor);		
 		}
 	}
 	
@@ -403,13 +370,13 @@ public class Main {
 			if (intEngineSize < minEngineSize ||
 				intEngineSize > maxEngineSize ||
 				isDoubleRegex(engineSize.getText())) {
-				engineSize.setForeground(Color.red);
+				engineSize.setForeground(invalidTextColor);
 				isEngineSizeSafe = false;
 				return;
 			}
 			
 			if (intEngineSize > minEngineSize && intEngineSize < maxEngineSize) {
-				engineSize.setForeground(Color.black);
+				engineSize.setForeground(generalTextColor);
 				isEngineSizeSafe = true;
 			}
 			
@@ -420,7 +387,7 @@ public class Main {
 			
 		} catch (Exception e2) {
 			System.out.println("Invalid char in Engine!");
-			engineSize.setForeground(Color.red);
+			engineSize.setForeground(invalidTextColor);
 		}
 	}
 
