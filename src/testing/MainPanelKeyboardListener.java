@@ -3,7 +3,7 @@ package testing;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-public class KeyboardListener implements KeyListener {
+public class MainPanelKeyboardListener implements KeyListener {
 
 	@Override
 	public void keyTyped(KeyEvent e) {

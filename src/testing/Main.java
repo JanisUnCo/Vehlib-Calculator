@@ -13,6 +13,7 @@ import javax.swing.JLabel;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.File;
+import java.io.FileWriter;
 
 import javax.swing.JComboBox;
 import javax.swing.JButton;
@@ -35,6 +36,7 @@ public class Main {
 	public static boolean isEngineSizeSafe;
 	public static boolean isPriceSafe;
 	public static boolean isEditing = false;
+	public static boolean isBtnToEdit = false;
 	public static double lastCat; // double instead of int, otherwise I will need to code more in one of the methods
 	
 	// GUI
@@ -60,8 +62,11 @@ public class Main {
 	private static JLabel lblTopSpeedValue;
 	private static JLabel lblAccelerationValue;
 	private static JLabel lblEngineInertiaValue;
+	
 	private static JLabel lblPrice;
 	private static JLabel lblEngineSize;
+	
+	static JButton btnCheck;
 	
 	public static double intPrice;
 	public static double intEngineSize;
@@ -75,6 +80,8 @@ public class Main {
 	
 	static HashMap<String, Double> categoryValues = new HashMap<String, Double>();
 	static ArrayList<String> categoryNameList = new ArrayList<String>();
+	static ArrayList<JTextField> editPanelMinTxtFields = new ArrayList<JTextField>(); 
+	static ArrayList<JTextField> editPanelMaxTxtFields = new ArrayList<JTextField>(); 
 	
 	static double engineKoef;
 	static double maxEngineSize;
@@ -90,8 +97,6 @@ public class Main {
 	static double maxTopSpeed;
 	static double minAcc;
 	static double maxAcc;
-	static double minDrag;
-	static double maxDrag;
 	static double minInertia;
 	static double maxInertia;
 	
@@ -101,27 +106,24 @@ public class Main {
 	private static JLabel lblTaxRange;
 	private static JLabel lblTopSpeedRange;
 	private static JLabel lblAccelerationRange;
-	private static JLabel lblDragRange;
+	
 	private static JLabel lblInertiaRange;
-	private static JTextField txtPriceRangeMin;
-	private static JTextField txtPriceRangeMax;
-	private static JTextField txtTaxRangeMin;
-	private static JTextField txtTaxRangeMax;
-	private static JTextField txtTopSpeedRangeMin;
-	private static JTextField txtTopSpeedRangeMax;
-	private static JTextField txtAccelerationRangeMin;
-	private static JTextField txtAccelerationRangeMax;
-	private static JTextField txtDragRangeMin;
-	private static JTextField txtDragRangeMax;
-	private static JTextField txtInertiaRangeMin;
-	private static JTextField txtInertiaRangeMax;
+	private static JTextField txtMinPrice;
+	private static JTextField txtMaxPrice;
+	private static JTextField txtMinTax;
+	private static JTextField txtMaxTax;
+	private static JTextField txtMinTopSpeed;
+	private static JTextField txtMaxTopSpeed;
+	private static JTextField txtMinAcc;
+	private static JTextField txtMaxAcc;
+	private static JTextField txtMaxInertia;
+	private static JTextField txtMinInertia;
 	private static JLabel lblTo1;
 	private static JLabel lblTo2;
 	private static JLabel lblTo3;
 	private static JLabel lblTo4;
-	private static JLabel lblTo5;
 	private static JLabel lblTo6;
-	private static JTextField txtPriceCoeficient;
+	private static JTextField txtPriceKoef;
 	private static JTextField txtWeight;
 
 	
@@ -140,43 +142,39 @@ public class Main {
 		int yUpperLblPeriod = 29;
 		int yLowerLblPeriod = 23;
 		
-		createLabel(panel, lblPrice, "Car price:", tahomaBold, leftColUpperLblBound, yUpperLblPeriod, 0);
-		createLabel(panel, lblEngineSize, "Engine size (*.*L):", tahomaBold, leftColUpperLblBound, yUpperLblPeriod, 1);
+		lblPrice = createLabel(panel,"Car price:", tahomaBold, leftColUpperLblBound, yUpperLblPeriod, 0);
+		lblEngineSize = createLabel(panel, "Engine size (*.*L):", tahomaBold, leftColUpperLblBound, yUpperLblPeriod, 1);
 		
-		createLabel(panel, lblOriginalPrice, "Original Price", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 0);
-		createLabel(panel, lblGamePrice, "In-game Price", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 1);
-		createLabel(panel, lblTax, "Tax", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 2);
-		createLabel(panel, lblTopSpeed, "Top Speed", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 3);
-		createLabel(panel, lblAcceleration, "Acceleration", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 4);
-		createLabel(panel, lblEngineInertia, "Engine inertia", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 5);
+		lblOriginalPrice = createLabel(panel, "Original Price", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 0);
+		lblGamePrice =  createLabel(panel, "In-game Price", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 1);
+		lblTax = createLabel(panel, "Tax", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 2);
+		lblTopSpeed = createLabel(panel, "Top Speed", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 3);
+		lblAcceleration = createLabel(panel, "Acceleration", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 4);
+		lblEngineInertia = createLabel(panel, "Engine inertia", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 5);
 		
 //		##################################################################
 //		You might ask shy the names so weird? In case I decide to make a saving system,
 //		where you could see the old values after closing the app.
 		
-		createLabel(panel, lblOriginalPriceValue, "$ "+String.valueOf(originalPrice), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 0);
-		
-//		lblOriginalPriceValue = new JLabel("$ "+String.valueOf(originalPrice));
-//		lblOriginalPriceValue.setFont(tahomaItalic);
-//		lblOriginalPriceValue.setBounds(rightColLowerLblBound.x, rightColLowerLblBound.y + yLowerLblPeriod * 0, rightColLowerLblBound.width, rightColLowerLblBound.height);
-//		panel.add(lblOriginalPriceValue);
-		
-		createLabel(panel, lblGamePriceValue, "$ "+String.valueOf(gamePrice), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 1);
-		createLabel(panel, lblTaxValue, "$ "+String.valueOf(tax), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 2);
-		createLabel(panel, lblTopSpeedValue, String.valueOf(topSpeed)+" KM/h", tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 3);
-		createLabel(panel, lblAccelerationValue, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 4);
-		createLabel(panel, lblEngineInertiaValue, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 5);
+		lblOriginalPriceValue = createLabel(panel, "$ "+String.valueOf(originalPrice), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 0);
+		lblGamePriceValue =  createLabel(panel, "$ "+String.valueOf(gamePrice), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 1);
+		lblTaxValue =  createLabel(panel, "$ "+String.valueOf(tax), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 2);
+		lblTopSpeedValue =  createLabel(panel, String.valueOf(topSpeed)+" KM/h", tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 3);
+		lblAccelerationValue = createLabel(panel, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 4);
+		lblEngineInertiaValue = createLabel(panel, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 5);
 	
 	}
 
-	static void createLabel (JPanel parentPanel, JLabel lblName, String lblText, 
+	static JLabel createLabel (JPanel parentPanel, String lblText, 
 							 Font lblFont, Bound bounds, int yPeriod, int position) {
 		
-		lblName = new JLabel(lblText);
+		JLabel lblName = new JLabel(lblText);
 		lblName.setFont(lblFont);
 		lblName.setBounds(bounds.x, bounds.y + yPeriod * position, 
 				bounds.width, bounds.height);
 		parentPanel.add(lblName);
+		
+		return lblName;
 	}
 
 	static void addComboBox() {
@@ -189,7 +187,7 @@ public class Main {
 	}
 	
 	static void addMainPanelFields() {
-		KeyboardListener listener = new KeyboardListener();
+		MainPanelKeyboardListener listener = new MainPanelKeyboardListener();
 		
 		engineSize = new JTextField(0);
 		engineSize.setBounds(171, 49, 144, 19);
@@ -213,141 +211,142 @@ public class Main {
 		editPanel.setLayout(null);
 		
 		JLabel lblNewLabel = new JLabel("Weight");
-		lblNewLabel.setBounds(42, 49, 98, 13);
+		lblNewLabel.setBounds(20, 46, 117, 13);
 		editPanel.add(lblNewLabel);
 		
+		int h = 19;
 		lblPriceKoeficient = new JLabel("Price coeficient");
-		lblPriceKoeficient.setBounds(42, 72, 98, 13);
+		lblPriceKoeficient.setBounds(20, 72, 98, h);
 		editPanel.add(lblPriceKoeficient);
 		
 		lblPriceRange = new JLabel("Price range");
-		lblPriceRange.setBounds(42, 95, 98, 13);
+		lblPriceRange.setBounds(20, 95, 98, h);
 		editPanel.add(lblPriceRange);
 		
 		lblTaxRange = new JLabel("Tax range");
-		lblTaxRange.setBounds(42, 118, 98, 13);
+		lblTaxRange.setBounds(20, 118, 98, h);
 		editPanel.add(lblTaxRange);
 		
 		lblTopSpeedRange = new JLabel("Top Speed range");
-		lblTopSpeedRange.setBounds(42, 141, 98, 13);
+		lblTopSpeedRange.setBounds(20, 141, 117, h);
 		editPanel.add(lblTopSpeedRange);
 		
 		lblAccelerationRange = new JLabel("Acceleration range");
-		lblAccelerationRange.setBounds(42, 164, 98, 13);
+		lblAccelerationRange.setBounds(20, 164, 117, h);
 		editPanel.add(lblAccelerationRange);
 		
-		lblDragRange = new JLabel("Drag range");
-		lblDragRange.setBounds(42, 187, 98, 13);
-		editPanel.add(lblDragRange);
-		
 		lblInertiaRange = new JLabel("Inertia range");
-		lblInertiaRange.setBounds(42, 210, 98, 13);
+		lblInertiaRange.setBounds(20, 203, 98, h);
 		editPanel.add(lblInertiaRange);
 		
 		JButton btnRemoveCategory = new JButton("Remove");
-		btnRemoveCategory.setBounds(42, 232, 135, 21);
+		btnRemoveCategory.setBounds(20, 233, 145, 21);
 		editPanel.add(btnRemoveCategory);
 		
-		JButton btnCheck = new JButton("Check");
+		btnCheck = new JButton("Check");
 		btnCheck.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (isBtnToEdit) {
+					writeEditToConfig();
+				}
+				checkTxtFieldValidity();
 			}
 		});
-		btnCheck.setBounds(187, 232, 128, 21);
+		btnCheck.setBounds(195, 232, 140, 21);
 		editPanel.add(btnCheck);
 		
-		txtPriceRangeMin = new JTextField();
-		txtPriceRangeMin.setColumns(10);
-		txtPriceRangeMin.setBounds(150, 95, 66, 13);
-		editPanel.add(txtPriceRangeMin);
 		
-		txtPriceRangeMax = new JTextField();
-		txtPriceRangeMax.setColumns(10);
-		txtPriceRangeMax.setBounds(249, 95, 66, 13);
-		editPanel.add(txtPriceRangeMax);
+
+		txtMinPrice = new JTextField();
+		txtMinPrice.setColumns(10);
+		txtMinPrice.setBounds(160, 95, 66, h);
+		editPanel.add(txtMinPrice);
+		editPanelMinTxtFields.add(txtMinPrice);
 		
-		txtTaxRangeMin = new JTextField();
-		txtTaxRangeMin.setColumns(10);
-		txtTaxRangeMin.setBounds(150, 118, 66, 13);
-		editPanel.add(txtTaxRangeMin);
+		txtMaxPrice = new JTextField();
+		txtMaxPrice.setColumns(10);
+		txtMaxPrice.setBounds(269, 95, 66, h);
+		editPanel.add(txtMaxPrice);
+		editPanelMaxTxtFields.add(txtMaxPrice);
 		
-		txtTaxRangeMax = new JTextField();
-		txtTaxRangeMax.setColumns(10);
-		txtTaxRangeMax.setBounds(249, 118, 66, 13);
-		editPanel.add(txtTaxRangeMax);
+		txtMinTax = new JTextField();
+		txtMinTax.setColumns(10);
+		txtMinTax.setBounds(160, 118, 66, h);
+		editPanel.add(txtMinTax);
+		editPanelMinTxtFields.add(txtMinTax);
 		
-		txtTopSpeedRangeMin = new JTextField();
-		txtTopSpeedRangeMin.setColumns(10);
-		txtTopSpeedRangeMin.setBounds(150, 141, 66, 13);
-		editPanel.add(txtTopSpeedRangeMin);
+		txtMaxTax = new JTextField();
+		txtMaxTax.setColumns(10);
+		txtMaxTax.setBounds(269, 118, 66, h);
+		editPanel.add(txtMaxTax);
+		editPanelMaxTxtFields.add(txtMaxTax);
 		
-		txtTopSpeedRangeMax = new JTextField();
-		txtTopSpeedRangeMax.setColumns(10);
-		txtTopSpeedRangeMax.setBounds(249, 141, 66, 13);
-		editPanel.add(txtTopSpeedRangeMax);
+		txtMinTopSpeed = new JTextField();
+		txtMinTopSpeed.setColumns(10);
+		txtMinTopSpeed.setBounds(160, 141, 66, h);
+		editPanel.add(txtMinTopSpeed);
+		editPanelMinTxtFields.add(txtMinTopSpeed);
 		
-		txtAccelerationRangeMin = new JTextField();
-		txtAccelerationRangeMin.setColumns(10);
-		txtAccelerationRangeMin.setBounds(150, 164, 66, 13);
-		editPanel.add(txtAccelerationRangeMin);
+		txtMaxTopSpeed = new JTextField();
+		txtMaxTopSpeed.setColumns(10);
+		txtMaxTopSpeed.setBounds(269, 141, 66, h);
+		editPanel.add(txtMaxTopSpeed);
+		editPanelMaxTxtFields.add(txtMaxTopSpeed);
 		
-		txtAccelerationRangeMax = new JTextField();
-		txtAccelerationRangeMax.setColumns(10);
-		txtAccelerationRangeMax.setBounds(249, 164, 66, 13);
-		editPanel.add(txtAccelerationRangeMax);
+		txtMinAcc = new JTextField();
+		txtMinAcc.setColumns(10);
+		txtMinAcc.setBounds(160, 164, 66, h);
+		editPanel.add(txtMinAcc);
+		editPanelMinTxtFields.add(txtMinAcc);
 		
-		txtDragRangeMin = new JTextField();
-		txtDragRangeMin.setColumns(10);
-		txtDragRangeMin.setBounds(150, 187, 66, 13);
-		editPanel.add(txtDragRangeMin);
+		txtMaxAcc = new JTextField();
+		txtMaxAcc.setColumns(10);
+		txtMaxAcc.setBounds(269, 164, 66, h);
+		editPanel.add(txtMaxAcc);
+		editPanelMaxTxtFields.add(txtMaxAcc);
 		
-		txtDragRangeMax = new JTextField();
-		txtDragRangeMax.setColumns(10);
-		txtDragRangeMax.setBounds(249, 187, 66, 13);
-		editPanel.add(txtDragRangeMax);
+		txtMaxInertia = new JTextField();
+		txtMaxInertia.setColumns(10);
+		txtMaxInertia.setBounds(160, 203, 66, h);
+		editPanel.add(txtMaxInertia);
+		editPanelMinTxtFields.add(txtMaxInertia);
 		
-		txtInertiaRangeMin = new JTextField();
-		txtInertiaRangeMin.setColumns(10);
-		txtInertiaRangeMin.setBounds(150, 210, 66, 13);
-		editPanel.add(txtInertiaRangeMin);
+		txtMinInertia = new JTextField();
+		txtMinInertia.setColumns(10);
+		txtMinInertia.setBounds(269, 204, 66, h);
+		editPanel.add(txtMinInertia);
+		editPanelMaxTxtFields.add(txtMinInertia);
 		
-		txtInertiaRangeMax = new JTextField();
-		txtInertiaRangeMax.setColumns(10);
-		txtInertiaRangeMax.setBounds(249, 210, 66, 13);
-		editPanel.add(txtInertiaRangeMax);
+		// to
 		
 		lblTo1 = new JLabel("to");
-		lblTo1.setBounds(226, 92, 13, 13);
+		lblTo1.setBounds(246, 95, 13, h);
 		editPanel.add(lblTo1);
 		
 		lblTo2 = new JLabel("to");
-		lblTo2.setBounds(226, 118, 13, 13);
+		lblTo2.setBounds(246, 118, 13, h);
 		editPanel.add(lblTo2);
 		
 		lblTo3 = new JLabel("to");
-		lblTo3.setBounds(226, 141, 13, 13);
+		lblTo3.setBounds(246, 141, 13, h);
 		editPanel.add(lblTo3);
 		
 		lblTo4 = new JLabel("to");
-		lblTo4.setBounds(226, 164, 13, 13);
+		lblTo4.setBounds(246, 164, 13, h);
 		editPanel.add(lblTo4);
 		
-		lblTo5 = new JLabel("to");
-		lblTo5.setBounds(226, 187, 13, 13);
-		editPanel.add(lblTo5);
-		
 		lblTo6 = new JLabel("to");
-		lblTo6.setBounds(226, 210, 13, 13);
+		lblTo6.setBounds(246, 203, 13, h);
 		editPanel.add(lblTo6);
 		
-		txtPriceCoeficient = new JTextField();
-		txtPriceCoeficient.setColumns(10);
-		txtPriceCoeficient.setBounds(150, 69, 165, 13);
-		editPanel.add(txtPriceCoeficient);
+		txtPriceKoef = new JTextField();
+		txtPriceKoef.setColumns(10);
+		txtPriceKoef.setBounds(160, 72, 175, h);
+		editPanel.add(txtPriceKoef);
 		
 		txtWeight = new JTextField();
 		txtWeight.setColumns(10);
-		txtWeight.setBounds(150, 46, 165, 13);
+		txtWeight.setBounds(160, 46, 175, h);
 		editPanel.add(txtWeight);
 		
 		panel = new JPanel();
@@ -430,8 +429,6 @@ public class Main {
 		maxTopSpeed = getConfigValue("maxTopSpeed");
 		minAcc = getConfigValue("minAcc");
 		maxAcc = getConfigValue("maxAcc");
-		minDrag = getConfigValue("minDrag");
-		maxDrag = getConfigValue("maxDrag");
 		minInertia = getConfigValue("minInertia");
 		maxInertia = getConfigValue("maxInertia");
 
@@ -443,6 +440,11 @@ public class Main {
 	
 	public static boolean isDoubleRegex(String elem) {
 		String regex = ".*\\d.{1}\\..*\\d";
+		return Pattern.compile(regex).matcher(elem).find();
+	}
+	
+	public static boolean isIntish(String elem) {
+		String regex = ".*\\d";
 		return Pattern.compile(regex).matcher(elem).find();
 	}
 
@@ -466,15 +468,15 @@ public class Main {
 					}
 				}
 				double lastCat = categoryValues.get("lastCat");
-				// why dont I implement another while loop here? Because something is wrong with the way how lines
-				// are counted, and I cant figure out what the hell is wrong and cant even think anymore oh god please!!!
+				// why don't I implement another while loop here? Because something is wrong with the way how lines
+				// are counted, and I can't figure out what the hell is wrong
 				if (line.contains("[Category")) {
 					counter++;
 					categoryNameList.add(line.substring(1, line.length()-1));
 				}
 				
 				if (line.contains("[Category "+(int) lastCat)) {
-					for (int i = 0; i < 14; i++) {
+					for (int i = 0; i < 12; i++) {
 						String []_line = scan.nextLine().split("=");
 						String key = _line[0].trim();
 						Double value = Double.parseDouble(_line[1].trim());
@@ -506,7 +508,7 @@ public class Main {
 				String line = scan.nextLine();
 				if (line.contains("[Category "+(int)(catNum+1))) {
 					System.out.println("Found line for cat!");
-					for (int i = 0; i < 14; i++) {
+					for (int i = 0; i < 12; i++) {
 						String []_line = scan.nextLine().split("=");
 						String key = _line[0].trim();
 						Double value = Double.parseDouble(_line[1].trim());
@@ -595,9 +597,9 @@ public class Main {
 			writeValuesInTxt();
 			return;
 		}
+		
 		checkEngine();
 		checkPrice();			
-		
 	}
 	
 	static void startCategoryEdit() {
@@ -613,20 +615,100 @@ public class Main {
 	static void writeValuesInTxt() {
 		// what should I do with this? Maybe use loops and arrays??
 		
-		txtAccelerationRangeMin.setText(String.valueOf(minAcc));
-		txtAccelerationRangeMax.setText(String.valueOf(maxAcc));
-		txtDragRangeMax.setText(String.valueOf(maxDrag));
-		txtDragRangeMin.setText(String.valueOf(minDrag));
-		txtInertiaRangeMax.setText(String.valueOf(maxInertia));
-		txtInertiaRangeMin.setText(String.valueOf(minInertia));
-		txtPriceCoeficient.setText(String.valueOf(priceKoef));
-		txtPriceRangeMax.setText(String.valueOf(maxPrice));
-		txtPriceRangeMin.setText(String.valueOf(maxPrice));
-		txtTaxRangeMax.setText(String.valueOf(maxTax));
-		txtTaxRangeMin.setText(String.valueOf(minTax));
-		txtTopSpeedRangeMax.setText(String.valueOf(maxTopSpeed));
-		txtTopSpeedRangeMin.setText(String.valueOf(minTopSpeed));
+		txtMinAcc.setText(String.valueOf(minAcc));
+		txtMaxAcc.setText(String.valueOf(maxAcc));
+		txtMinInertia.setText(String.valueOf(minInertia));
+		txtMaxInertia.setText(String.valueOf(maxInertia));
+		txtMaxPrice.setText(String.valueOf(maxPrice));
+		txtMinPrice.setText(String.valueOf(minPrice));
+		txtMaxTax.setText(String.valueOf(maxTax));
+		txtMinTax.setText(String.valueOf(minTax));
+		txtMaxTopSpeed.setText(String.valueOf(maxTopSpeed));
+		txtMinTopSpeed.setText(String.valueOf(minTopSpeed));
+		
+		txtPriceKoef.setText(String.valueOf(priceKoef));
 		txtWeight.setText(String.valueOf(weight));
+		
+	}
+	
+	static void checkTxtFieldValidity() {
+		boolean flag = false;
+		for (int i = 0; i < editPanelMinTxtFields.size(); i++) {
+			System.out.println("Max field: "+String.valueOf(editPanelMaxTxtFields.get(i).getText()));
+			System.out.println("Min field: "+String.valueOf(editPanelMinTxtFields.get(i).getText()));
+			if(isMinAndMaxTxtValid(editPanelMinTxtFields.get(i), 
+								   editPanelMaxTxtFields.get(i))) {
+				flag = true;
+				continue;
+			}
+			flag = false;
+		}
+		if (flag) {
+			btnCheck.setText("Edit");
+			isBtnToEdit = true;
+		}
+	}
+	
+	static boolean isMinAndMaxTxtValid(JTextField minValue, JTextField maxValue) {
+		String min = minValue.getText();
+		String max = maxValue.getText();
+		
+		if (isDoubleRegex(min) == false && isIntish(min) == false) {
+			minValue.setForeground(invalidTextColor);
+			return false;
+		}
+		
+		if(isDoubleRegex(max) == false && isIntish(max) == false) {
+			maxValue.setForeground(invalidTextColor);
+			return false;
+		}
+		
+		if(Double.parseDouble(min) >= Double.parseDouble(max)) {
+			maxValue.setForeground(invalidTextColor);
+			minValue.setForeground(invalidTextColor);
+			return false;
+		}
+		
+		minValue.setForeground(generalTextColor);
+		maxValue.setForeground(generalTextColor);
+		return true;
+	}
+	
+	// this is probably useless
+	static String getNumDataType(String number) {
+		if(isDoubleRegex(number)) return "Double";
+		if(isIntish(number)) return "int";
+		return "String";
+	}
+	
+	static void writeDataToConfig() {
+		
+		File file = new File(root+"values.conf");
+		try {
+			FileWriter fw = new FileWriter(file);
+			Scanner scan = new Scanner(file);
+			
+			scan.close();
+			fw.close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+	
+	static void writeTxtFieldValuesToHash() {
+		// I could fix this mess by making an extremely crude string operator system and loops
+		categoryValues.replace("weight", Double.parseDouble(txtWeight.getText()));
+		categoryValues.replace("priceKoef", Double.parseDouble(txtPriceKoef.getText()));
+		categoryValues.replace("minPrice", Double.parseDouble(txtMinPrice.getText()));
+		categoryValues.replace("maxPrice", Double.parseDouble(txtMaxPrice.getText()));
+		categoryValues.replace("maxTax", Double.parseDouble(txtMaxTax.getText()));
+		categoryValues.replace("minTopSpeed", Double.parseDouble(txtMinTopSpeed.getText()));
+		categoryValues.replace("maxTopSpeed", Double.parseDouble(txtMaxTopSpeed.getText()));
+		categoryValues.replace("minAcc", Double.parseDouble(txtMinAcc.getText()));
+		categoryValues.replace("maxAcc", Double.parseDouble(txtMaxAcc.getText()));
+		categoryValues.replace("minInertia", Double.parseDouble(txtMinInertia.getText()));
+		categoryValues.replace("maxInertia", Double.parseDouble(txtMaxInertia.getText()));
+		
 	}
 	
 }
