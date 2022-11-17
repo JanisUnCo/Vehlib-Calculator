@@ -33,6 +33,7 @@ public class Main {
 	public static Color invalidTextColor = Color.red;
 	public static Color generalTextColor = Color.black;
 
+	static boolean addTo = true;
 	public static boolean isEngineSizeSafe;
 	public static boolean isPriceSafe;
 	public static boolean isEditing = false;
@@ -108,6 +109,7 @@ public class Main {
 	private static JLabel lblAccelerationRange;
 	
 	private static JLabel lblInertiaRange;
+	
 	private static JTextField txtMinPrice;
 	private static JTextField txtMaxPrice;
 	private static JTextField txtMinTax;
@@ -118,13 +120,13 @@ public class Main {
 	private static JTextField txtMaxAcc;
 	private static JTextField txtMaxInertia;
 	private static JTextField txtMinInertia;
+	private static JTextField txtPriceKoef;
+	private static JTextField txtWeight;
 	private static JLabel lblTo1;
 	private static JLabel lblTo2;
 	private static JLabel lblTo3;
 	private static JLabel lblTo4;
 	private static JLabel lblTo6;
-	private static JTextField txtPriceKoef;
-	private static JTextField txtWeight;
 
 	
 	public static void main(String[] args) {
@@ -211,7 +213,7 @@ public class Main {
 		editPanel.setLayout(null);
 		
 		JLabel lblNewLabel = new JLabel("Weight");
-		lblNewLabel.setBounds(20, 46, 117, 13);
+		lblNewLabel.setBounds(20, 49, 117, 13);
 		editPanel.add(lblNewLabel);
 		
 		int h = 19;
@@ -236,7 +238,7 @@ public class Main {
 		editPanel.add(lblAccelerationRange);
 		
 		lblInertiaRange = new JLabel("Inertia range");
-		lblInertiaRange.setBounds(20, 203, 98, h);
+		lblInertiaRange.setBounds(20, 187, 98, h);
 		editPanel.add(lblInertiaRange);
 		
 		JButton btnRemoveCategory = new JButton("Remove");
@@ -247,11 +249,13 @@ public class Main {
 		btnCheck.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (isBtnToEdit) {
-					writeEditToConfig();
+					writeTxtFieldValuesToHash();
+					writeEditDataToConfig();
 				}
 				checkTxtFieldValidity();
 			}
 		});
+		
 		btnCheck.setBounds(195, 232, 140, 21);
 		editPanel.add(btnCheck);
 		
@@ -307,13 +311,13 @@ public class Main {
 		
 		txtMaxInertia = new JTextField();
 		txtMaxInertia.setColumns(10);
-		txtMaxInertia.setBounds(160, 203, 66, h);
+		txtMaxInertia.setBounds(160, 187, 66, h);
 		editPanel.add(txtMaxInertia);
 		editPanelMinTxtFields.add(txtMaxInertia);
 		
 		txtMinInertia = new JTextField();
 		txtMinInertia.setColumns(10);
-		txtMinInertia.setBounds(269, 204, 66, h);
+		txtMinInertia.setBounds(269, 187, 66, h);
 		editPanel.add(txtMinInertia);
 		editPanelMaxTxtFields.add(txtMinInertia);
 		
@@ -336,7 +340,7 @@ public class Main {
 		editPanel.add(lblTo4);
 		
 		lblTo6 = new JLabel("to");
-		lblTo6.setBounds(246, 203, 13, h);
+		lblTo6.setBounds(246, 187, 13, h);
 		editPanel.add(lblTo6);
 		
 		txtPriceKoef = new JTextField();
@@ -613,8 +617,6 @@ public class Main {
 	}
 	
 	static void writeValuesInTxt() {
-		// what should I do with this? Maybe use loops and arrays??
-		
 		txtMinAcc.setText(String.valueOf(minAcc));
 		txtMaxAcc.setText(String.valueOf(maxAcc));
 		txtMinInertia.setText(String.valueOf(minInertia));
@@ -634,8 +636,8 @@ public class Main {
 	static void checkTxtFieldValidity() {
 		boolean flag = false;
 		for (int i = 0; i < editPanelMinTxtFields.size(); i++) {
-			System.out.println("Max field: "+String.valueOf(editPanelMaxTxtFields.get(i).getText()));
-			System.out.println("Min field: "+String.valueOf(editPanelMinTxtFields.get(i).getText()));
+//			System.out.println("Max field: "+String.valueOf(editPanelMaxTxtFields.get(i).getText()));
+//			System.out.println("Min field: "+String.valueOf(editPanelMinTxtFields.get(i).getText()));
 			if(isMinAndMaxTxtValid(editPanelMinTxtFields.get(i), 
 								   editPanelMaxTxtFields.get(i))) {
 				flag = true;
@@ -674,20 +676,31 @@ public class Main {
 		return true;
 	}
 	
-	// this is probably useless
-	static String getNumDataType(String number) {
-		if(isDoubleRegex(number)) return "Double";
-		if(isIntish(number)) return "int";
-		return "String";
-	}
-	
-	static void writeDataToConfig() {
+	static void writeEditDataToConfig() {
 		
 		File file = new File(root+"values.conf");
 		try {
-			FileWriter fw = new FileWriter(file);
+			FileWriter fw = new FileWriter(file.getAbsolutePath(), addTo);
 			Scanner scan = new Scanner(file);
-			
+			int comboBoxIndex = comboBox.getSelectedIndex()+1;
+			System.out.println(comboBoxIndex);
+			while (scan.hasNextLine()) {
+//				System.out.println("scanning #1");
+				String line = scan.nextLine();
+//				System.out.println(line);
+				if (line.contains("[Category "+comboBoxIndex)) {
+					System.out.println("FOUND LINE TO EDIT!");
+					for (int i = 0; i < 13; i++) {
+						// issue lies, that it writes at the end of the file!
+						String []_line = scan.nextLine().split("=");
+						String key = _line[0].trim();
+//						Double value = Double.parseDouble(_line[1].trim());
+						String toReplace = key + " = " + categoryValues.get(key);
+						System.out.println(toReplace);
+//						fw.append(key + " = " + categoryValues.get(key));
+					}
+				}
+			}
 			scan.close();
 			fw.close();
 		} catch (Exception e) {
@@ -697,6 +710,7 @@ public class Main {
 	
 	static void writeTxtFieldValuesToHash() {
 		// I could fix this mess by making an extremely crude string operator system and loops
+		// Note on the last comment - you cannot, might go with using extend JTextField
 		categoryValues.replace("weight", Double.parseDouble(txtWeight.getText()));
 		categoryValues.replace("priceKoef", Double.parseDouble(txtPriceKoef.getText()));
 		categoryValues.replace("minPrice", Double.parseDouble(txtMinPrice.getText()));
@@ -708,7 +722,8 @@ public class Main {
 		categoryValues.replace("maxAcc", Double.parseDouble(txtMaxAcc.getText()));
 		categoryValues.replace("minInertia", Double.parseDouble(txtMinInertia.getText()));
 		categoryValues.replace("maxInertia", Double.parseDouble(txtMaxInertia.getText()));
-		
 	}
+	
+	
 	
 }
