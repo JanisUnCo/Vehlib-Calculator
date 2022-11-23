@@ -83,6 +83,7 @@ public class Main {
 	static ArrayList<String> categoryNameList = new ArrayList<String>();
 	static ArrayList<JTextField> editPanelMinTxtFields = new ArrayList<JTextField>(); 
 	static ArrayList<JTextField> editPanelMaxTxtFields = new ArrayList<JTextField>(); 
+	static ArrayList<Category> categoryList = new ArrayList<Category>();
 	
 	static double engineKoef;
 	static double maxEngineSize;
@@ -133,6 +134,7 @@ public class Main {
 		System.out.println(root);
 		initializeStart();
 		startGUI();	
+		System.out.println(categoryList);
 		
 //		for (String i : categoryValues.keySet()) {
 //			  System.out.println("key: " + i + " value: " + categoryValues.get(i));
@@ -192,13 +194,13 @@ public class Main {
 		MainPanelKeyboardListener listener = new MainPanelKeyboardListener();
 		
 		engineSize = new JTextField(0);
-		engineSize.setBounds(171, 49, 144, 19);
+		engineSize.setBounds(171, 78, 144, 19);
 		panel.add(engineSize);
 		engineSize.setColumns(10);
 		engineSize.addKeyListener(listener);
 
 		priceField = new JTextField(0);
-		priceField.setBounds(171, 78, 144, 19);
+		priceField.setBounds(171, 49, 144, 19);
 		panel.add(priceField);
 		priceField.setColumns(10);
 		priceField.addKeyListener(listener);
@@ -423,18 +425,18 @@ public class Main {
 		maxEngineSize  = getConfigValue("maxEngineSize");
 		minEngineSize  = getConfigValue("minEngineSize");
 
-		weight = getConfigValue("weight");
-		priceKoef = getConfigValue("priceKoef");
-		minPrice = getConfigValue("minPrice");
-		maxPrice = getConfigValue("maxPrice");
-		minTax = getConfigValue("minTax");
-		maxTax = getConfigValue("maxTax");
-		minTopSpeed = getConfigValue("minTopSpeed");
-		maxTopSpeed = getConfigValue("maxTopSpeed");
-		minAcc = getConfigValue("minAcc");
-		maxAcc = getConfigValue("maxAcc");
-		minInertia = getConfigValue("minInertia");
-		maxInertia = getConfigValue("maxInertia");
+//		weight = getConfigValue("weight");
+//		priceKoef = getConfigValue("priceKoef");
+//		minPrice = getConfigValue("minPrice");
+//		maxPrice = getConfigValue("maxPrice");
+//		minTax = getConfigValue("minTax");
+//		maxTax = getConfigValue("maxTax");
+//		minTopSpeed = getConfigValue("minTopSpeed");
+//		maxTopSpeed = getConfigValue("maxTopSpeed");
+//		minAcc = getConfigValue("minAcc");
+//		maxAcc = getConfigValue("maxAcc");
+//		minInertia = getConfigValue("minInertia");
+//		maxInertia = getConfigValue("maxInertia");
 
 //		for (String i : categoryValues.keySet()) {
 //		  System.out.println("key: " + i + " value: " + categoryValues.get(i));
@@ -476,17 +478,26 @@ public class Main {
 				// are counted, and I can't figure out what the hell is wrong
 				if (line.contains("[Category")) {
 					counter++;
-					categoryNameList.add(line.substring(1, line.length()-1));
-				}
-				
-				if (line.contains("[Category "+(int) lastCat)) {
+					HashMap <String, Double> _objMap = new HashMap<String, Double>();
 					for (int i = 0; i < 12; i++) {
 						String []_line = scan.nextLine().split("=");
 						String key = _line[0].trim();
 						Double value = Double.parseDouble(_line[1].trim());
-						categoryValues.put(key, value);
+						_objMap.put(key, value);
 					}
+					categoryList.add(new Category(counter, _objMap));
+					categoryNameList.add(line.substring(1, line.length()-1));
+					
 				}
+//				
+//				if (line.contains("[Category "+(int) lastCat)) {
+//					for (int i = 0; i < 12; i++) {
+//						String []_line = scan.nextLine().split("=");
+//						String key = _line[0].trim();
+//						Double value = Double.parseDouble(_line[1].trim());
+//						categoryValues.put(key, value);
+//					}
+//				}
 			}
 			comboBoxElements = new String[counter+1];
 			categoryNameList.add("Add, edit or remove...");
@@ -504,27 +515,48 @@ public class Main {
 		}	
 	}
 	
-	static void changeCategoryIntegers(double catNum) {
-		File file = new File(root+"values.conf");
-		try {
-			Scanner scan = new Scanner(file);
-			while (scan.hasNextLine()) {
-				String line = scan.nextLine();
-				if (line.contains("[Category "+(int)(catNum+1))) {
-					System.out.println("Found line for cat!");
-					for (int i = 0; i < 12; i++) {
-						String []_line = scan.nextLine().split("=");
-						String key = _line[0].trim();
-						Double value = Double.parseDouble(_line[1].trim());
-						categoryValues.replace(key, value);
-					}
-				}
-			}
-			setConfigValuesToIntegers();
-			scan.close();
-		} catch (Exception e) {
-
-		}
+	static void changeCategoryVariables(double catNum) {
+//		categoryValues = Category.getCategoryValues(categoryList.get((int)catNum));
+		Category obj = categoryList.get((int)catNum);
+		weight = obj.weight;
+		priceKoef = obj.priceKoef;
+		
+		minPrice = obj.minPrice;
+		maxPrice = obj.maxPrice;
+		minTax = obj.minTax;
+		maxTax = obj.maxTax;
+		minTopSpeed = obj.minTopSpeed;
+		maxTopSpeed = obj.maxTopSpeed;
+		minAcc = obj.minAcc;
+		maxAcc = obj.maxAcc;
+		minInertia = obj.minInertia;
+		maxInertia = obj.maxInertia;
+		
+		System.out.println(minPrice);
+		
+//		setConfigValuesToIntegers();
+		
+//		File file = new File(root+"values.conf");
+//		try {
+//			Scanner scan = new Scanner(file);
+//			while (scan.hasNextLine()) {
+//				String line = scan.nextLine();
+//				if (line.contains("[Category "+(int)(catNum+1))) {
+//					System.out.println("Found line for cat!");
+//					for (int i = 0; i < 12; i++) {
+//						String []_line = scan.nextLine().split("=");
+//						String key = _line[0].trim();
+//						Double value = Double.parseDouble(_line[1].trim());
+//						categoryValues.replace(key, value);
+//					}
+//				}
+//			}
+//			
+//			setConfigValuesToIntegers();
+//			scan.close();
+//		} catch (Exception e) {
+//
+//		}
 	
 	}
 
@@ -595,7 +627,7 @@ public class Main {
 			startCategoryEdit();
 		}
 		
-		changeCategoryIntegers(comboBox.getSelectedIndex());
+		changeCategoryVariables(comboBox.getSelectedIndex());
 		lastCat = (double)comboBox.getSelectedIndex();
 		if (isEditing) {
 			writeValuesInTxt();
