@@ -64,6 +64,8 @@ public class Main {
 	private static JLabel lblAccelerationValue;
 	private static JLabel lblEngineInertiaValue;
 	
+	private static JLabel lblWeight;
+	
 	private static JLabel lblPrice;
 	private static JLabel lblEngineSize;
 	
@@ -157,7 +159,7 @@ public class Main {
 		lblEngineInertia = createLabel(panel, "Engine inertia", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 5);
 		
 //		##################################################################
-//		You might ask shy the names so weird? In case I decide to make a saving system,
+//		You might ask why the names so weird? In case I decide to make a saving system,
 //		where you could see the old values after closing the app.
 		
 		lblOriginalPriceValue = createLabel(panel, "$ "+String.valueOf(originalPrice), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 0);
@@ -187,7 +189,7 @@ public class Main {
 		comboBox = new JComboBox(comboBoxElements);
 		comboBox.setBounds(42, 18, 273, 21);
 		panel.add(comboBox);
-		comboBox.addActionListener(listener);
+		comboBox.addActionListener(listener); 
 	}
 	
 	static void addMainPanelFields() {
@@ -214,9 +216,9 @@ public class Main {
 		frame.getContentPane().add(editPanel);
 		editPanel.setLayout(null);
 		
-		JLabel lblNewLabel = new JLabel("Weight");
-		lblNewLabel.setBounds(20, 49, 117, 13);
-		editPanel.add(lblNewLabel);
+		lblWeight = new JLabel("Weight");
+		lblWeight.setBounds(20, 49, 117, 13);
+		editPanel.add(lblWeight);
 		
 		int h = 19;
 		lblPriceKoeficient = new JLabel("Price coeficient");
@@ -473,9 +475,8 @@ public class Main {
 						categoryValues.put(key, value);		
 					}
 				}
-				double lastCat = categoryValues.get("lastCat");
-				// why don't I implement another while loop here? Because something is wrong with the way how lines
-				// are counted, and I can't figure out what the hell is wrong
+				double lastCat = categoryValues.get("lastCat"); // this could have use
+
 				if (line.contains("[Category")) {
 					counter++;
 					HashMap <String, Double> _objMap = new HashMap<String, Double>();
@@ -485,7 +486,7 @@ public class Main {
 						Double value = Double.parseDouble(_line[1].trim());
 						_objMap.put(key, value);
 					}
-					categoryList.add(new Category(counter, _objMap));
+					new Category(counter, _objMap);
 					categoryNameList.add(line.substring(1, line.length()-1));
 					
 				}
@@ -500,10 +501,13 @@ public class Main {
 //				}
 			}
 			comboBoxElements = new String[counter+1];
-			categoryNameList.add("Add, edit or remove...");
-			for (int i = 0; i < comboBoxElements.length; i++) {
-				comboBoxElements[i] = categoryNameList.get(i);
+			comboBoxElements[counter] = ("Add, edit or remove...");
+			for (int i = 0; i < comboBoxElements.length-1; i++) {
+// 				comboBoxElements[i] = categoryNameList.get(i);
+				String catName = Category.all.get(i).name;
+				comboBoxElements[i] = catName.substring(1, catName.length()-1);
 			}
+			
 			scan.close();
 			setConfigValuesToIntegers();
 			} catch (Exception e) {
@@ -517,7 +521,7 @@ public class Main {
 	
 	static void changeCategoryVariables(double catNum) {
 //		categoryValues = Category.getCategoryValues(categoryList.get((int)catNum));
-		Category obj = categoryList.get((int)catNum);
+		Category obj = Category.all.get((int)catNum);
 		weight = obj.weight;
 		priceKoef = obj.priceKoef;
 		

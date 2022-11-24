@@ -1,5 +1,6 @@
 package testing;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Category {
@@ -16,6 +17,9 @@ public class Category {
 		   maxAcc,
 		   minInertia,
 		   maxInertia;
+	
+	static ArrayList<Category> all = new ArrayList<Category>();
+	
 	
 	public Category(int number, HashMap<String, Double> valueMap) {
 		try {
@@ -36,6 +40,7 @@ public class Category {
 			return;
 		}
 		this.name = name + number+" - (" +(int) minPrice+ "-" +(int) maxPrice+")]";
+		all.add(this);
 	}
 
 	public String toString() {
