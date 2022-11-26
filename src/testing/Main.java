@@ -21,9 +21,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 public class Main {
-//	static String root = System.getProperty("user.dir") + "\\src\\testing\\"; // for widnows
+	static String root = System.getProperty("user.dir") + "\\src\\testing\\"; // for widnows
 	
-	static String root = System.getProperty("user.dir") + "/src/testing/"; 
+//	static String root = System.getProperty("user.dir") + "/src/testing/"; 
 
 	public static Font tahomaBold = new Font("Tahoma", Font.BOLD, 10);
 	public static Font tahomaItalic = new Font("Tahoma", Font.ITALIC, 10);
@@ -31,6 +31,11 @@ public class Main {
 	public static Bound leftColLowerLblBound = new Bound(42, 123, 144, 13);
 	public static Bound leftColUpperLblBound = new Bound(42, 52, 144, 13);
 	public static Bound rightColLowerLblBound = new Bound(171, 123, 144, 13);
+	 
+	public static Bound editPanelMainLblBound = new Bound(20, 49, 117, 13);
+	public static Bound editPanelTxtLeftColBound = new Bound(160, 69+23, 66, 19);
+//	public static Bound editPanelToLblBound = new Bound();
+//	public static Bound editPanelTxtRightColBound = new Bound();
 	
 	public static Color invalidTextColor = Color.red;
 	public static Color generalTextColor = Color.black;
@@ -89,8 +94,8 @@ public class Main {
 	
 	// why would I add these next 2?
 	// now I rembember - is for when they are looking if min > max, because alphabetical order
-	static ArrayList<JTextField> editPanelMinTxtFields = new ArrayList<JTextField>(); 
-	static ArrayList<JTextField> editPanelMaxTxtFields = new ArrayList<JTextField>(); 
+	static ArrayList<JTextField> minTxtList = new ArrayList<JTextField>(); 
+	static ArrayList<JTextField> maxTxtList = new ArrayList<JTextField>(); 
 	
 	
 	static ArrayList<Category> categoryList = new ArrayList<Category>();
@@ -153,30 +158,119 @@ public class Main {
 	}
 	
 	static void addLabels() {
-		int yUpperLblPeriod = 29;
-		int yLowerLblPeriod = 23;
+		int lowerPeriod = 23;
+		int upperPeriod = 29;
 		
-		lblPrice = createLabel(panel,"Car price:", tahomaBold, leftColUpperLblBound, yUpperLblPeriod, 0);
-		lblEngineSize = createLabel(panel, "Engine size (*.*L):", tahomaBold, leftColUpperLblBound, yUpperLblPeriod, 1);
+		lblPrice = createLabel(panel,"Car price:", tahomaBold, leftColUpperLblBound, upperPeriod, 0);
+		lblEngineSize = createLabel(panel, "Engine size (*.*L):", tahomaBold, leftColUpperLblBound, upperPeriod, 1);
 		
-		lblOriginalPrice = createLabel(panel, "Original Price", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 0);
-		lblGamePrice =  createLabel(panel, "In-game Price", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 1);
-		lblTax = createLabel(panel, "Tax", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 2);
-		lblTopSpeed = createLabel(panel, "Top Speed", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 3);
-		lblAcceleration = createLabel(panel, "Acceleration", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 4);
-		lblEngineInertia = createLabel(panel, "Engine inertia", tahomaBold, leftColLowerLblBound, yLowerLblPeriod, 5);
+		lblOriginalPrice = createLabel(panel, "Original Price", tahomaBold, leftColLowerLblBound, lowerPeriod, 0);
+		lblGamePrice =  createLabel(panel, "In-game Price", tahomaBold, leftColLowerLblBound, lowerPeriod, 1);
+		lblTax = createLabel(panel, "Tax", tahomaBold, leftColLowerLblBound, lowerPeriod, 2);
+		lblTopSpeed = createLabel(panel, "Top Speed", tahomaBold, leftColLowerLblBound, lowerPeriod, 3);
+		lblAcceleration = createLabel(panel, "Acceleration", tahomaBold, leftColLowerLblBound, lowerPeriod, 4);
+		lblEngineInertia = createLabel(panel, "Engine inertia", tahomaBold, leftColLowerLblBound, lowerPeriod, 5);
 		
 //		##################################################################
 //		You might ask why the names so weird? In case I decide to make a saving system,
 //		where you could see the old values after closing the app.
 		
-		lblOriginalPriceValue = createLabel(panel, "$ "+String.valueOf(originalPrice), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 0);
-		lblGamePriceValue =  createLabel(panel, "$ "+String.valueOf(gamePrice), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 1);
-		lblTaxValue =  createLabel(panel, "$ "+String.valueOf(tax), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 2);
-		lblTopSpeedValue =  createLabel(panel, String.valueOf(topSpeed)+" KM/h", tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 3);
-		lblAccelerationValue = createLabel(panel, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 4);
-		lblEngineInertiaValue = createLabel(panel, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, yLowerLblPeriod, 5);
+		lblOriginalPriceValue = createLabel(panel, "$ "+String.valueOf(originalPrice), tahomaItalic, rightColLowerLblBound, lowerPeriod, 0);
+		lblGamePriceValue =  createLabel(panel, "$ "+String.valueOf(gamePrice), tahomaItalic, rightColLowerLblBound, lowerPeriod, 1);
+		lblTaxValue =  createLabel(panel, "$ "+String.valueOf(tax), tahomaItalic, rightColLowerLblBound, lowerPeriod, 2);
+		lblTopSpeedValue =  createLabel(panel, String.valueOf(topSpeed)+" KM/h", tahomaItalic, rightColLowerLblBound, lowerPeriod, 3);
+		lblAccelerationValue = createLabel(panel, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, lowerPeriod, 4);
+		lblEngineInertiaValue = createLabel(panel, String.valueOf(acceleration), tahomaItalic, rightColLowerLblBound, lowerPeriod, 5);
 	
+		
+//		EditPanel labels - for now they will be intialized with main ones
+		
+
+		lblWeight = createLabel(editPanel, "Weight", tahomaBold, editPanelMainLblBound, lowerPeriod, 0);
+		lblPriceKoeficient = createLabel(editPanel, "Price Coeficient", tahomaBold, editPanelMainLblBound, lowerPeriod, 1);
+		lblPriceRange = createLabel(editPanel, "Price range", tahomaBold, editPanelMainLblBound, lowerPeriod, 2);
+		lblTaxRange = createLabel(editPanel, "Tax range", tahomaBold, editPanelMainLblBound, lowerPeriod, 3);
+		lblTopSpeedRange = createLabel(editPanel, "Top Speed range", tahomaBold, editPanelMainLblBound, lowerPeriod, 4);
+		lblAccelerationRange = createLabel(editPanel, "Acceleration range", tahomaBold, editPanelMainLblBound, lowerPeriod, 5);
+		lblInertiaRange = createLabel(editPanel, "Inertia range", tahomaBold, editPanelMainLblBound, lowerPeriod, 6);
+		
+		txtPriceKoef = new JTextField();
+		txtPriceKoef.setColumns(10);
+		txtPriceKoef.setBounds(160, 69, 175, 19);
+		editPanel.add(txtPriceKoef);
+		
+		txtWeight = new JTextField();
+		txtWeight.setColumns(10);
+		txtWeight.setBounds(160, 46, 175, 19);
+		editPanel.add(txtWeight);
+		
+		EditTxtFieldPanelListener listener = new EditTxtFieldPanelListener();
+		
+		txtMinPrice = createTxtField(editPanel, minTxtList, 1, listener, editPanelTxtLeftColBound, lowerPeriod, 0);
+		
+		txtMinPrice = new JTextField();
+		txtMinPrice.setColumns(1);
+		txtMinPrice.setBounds(160, 95, 66, h);
+		editPanel.add(txtMinPrice);
+		minTxtList.add(txtMinPrice);
+		// and listener!!!!!
+		
+		txtMaxPrice = new JTextField();
+		txtMaxPrice.setColumns(10);
+		txtMaxPrice.setBounds(269, 95, 66, h);
+		editPanel.add(txtMaxPrice);
+		maxTxtList.add(txtMaxPrice);
+		
+		txtMinTax = new JTextField();
+		txtMinTax.setColumns(10);
+		txtMinTax.setBounds(160, 118, 66, h);
+		editPanel.add(txtMinTax);
+		minTxtList.add(txtMinTax);
+		
+		txtMaxTax = new JTextField();
+		txtMaxTax.setColumns(10);
+		txtMaxTax.setBounds(269, 118, 66, h);
+		editPanel.add(txtMaxTax);
+		maxTxtList.add(txtMaxTax);
+		
+		txtMinTopSpeed = new JTextField();
+		txtMinTopSpeed.setColumns(10);
+		txtMinTopSpeed.setBounds(160, 141, 66, h);
+		editPanel.add(txtMinTopSpeed);
+		minTxtList.add(txtMinTopSpeed);
+		
+		txtMaxTopSpeed = new JTextField();
+		txtMaxTopSpeed.setColumns(10);
+		txtMaxTopSpeed.setBounds(269, 141, 66, h);
+		editPanel.add(txtMaxTopSpeed);
+		maxTxtList.add(txtMaxTopSpeed);
+		
+		txtMinAcc = new JTextField();
+		txtMinAcc.setColumns(10);
+		txtMinAcc.setBounds(160, 164, 66, h);
+		editPanel.add(txtMinAcc);
+		minTxtList.add(txtMinAcc);
+		
+		txtMaxAcc = new JTextField();
+		txtMaxAcc.setColumns(10);
+		txtMaxAcc.setBounds(269, 164, 66, h);
+		editPanel.add(txtMaxAcc);
+		maxTxtList.add(txtMaxAcc);
+		
+		txtMaxInertia = new JTextField();
+		txtMaxInertia.setColumns(10);
+		txtMaxInertia.setBounds(160, 187, 66, h);
+		editPanel.add(txtMaxInertia);
+		minTxtList.add(txtMaxInertia);
+		
+		txtMinInertia = new JTextField();
+		txtMinInertia.setColumns(10);
+		txtMinInertia.setBounds(269, 187, 66, h);
+		editPanel.add(txtMinInertia);
+		maxTxtList.add(txtMinInertia);
+		
+		
+		
 	}
 
 	static JLabel createLabel (JPanel parentPanel, String lblText, 
@@ -199,7 +293,7 @@ public class Main {
 		// h = 19
 		JTextField txtField  = new JTextField();
 		txtField.setColumns(columns);
-		txtMinPrice.setBounds(bounds.x,
+		txtField.setBounds(bounds.x,
 							  bounds.y + yPeriod * pos,
 							  bounds.width,
 							  bounds.height);
@@ -243,41 +337,15 @@ public class Main {
 		editPanel.setBounds(0, 0, 360, 263);
 		frame.getContentPane().add(editPanel);
 		editPanel.setLayout(null);
-		
-		lblWeight = new JLabel("Weight");
-		lblWeight.setBounds(20, 49, 117, 13);
-		editPanel.add(lblWeight);
-		
+
 		int h = 19;
-		lblPriceKoeficient = new JLabel("Price coeficient");
-		lblPriceKoeficient.setBounds(20, 72, 98, h);
-		editPanel.add(lblPriceKoeficient);
-		
-		lblPriceRange = new JLabel("Price range");
-		lblPriceRange.setBounds(20, 95, 98, h);
-		editPanel.add(lblPriceRange);
-		
-		lblTaxRange = new JLabel("Tax range");
-		lblTaxRange.setBounds(20, 118, 98, h);
-		editPanel.add(lblTaxRange);
-		
-		lblTopSpeedRange = new JLabel("Top Speed range");
-		lblTopSpeedRange.setBounds(20, 141, 117, h);
-		editPanel.add(lblTopSpeedRange);
-		
-		lblAccelerationRange = new JLabel("Acceleration range");
-		lblAccelerationRange.setBounds(20, 164, 117, h);
-		editPanel.add(lblAccelerationRange);
-		
-		lblInertiaRange = new JLabel("Inertia range");
-		lblInertiaRange.setBounds(20, 187, 98, h);
-		editPanel.add(lblInertiaRange);
 		
 		JButton btnRemoveCategory = new JButton("Remove");
 		btnRemoveCategory.setBounds(20, 233, 145, 21);
 		editPanel.add(btnRemoveCategory);
 		
-		btnCheck = new JButton("Check");
+		btnCheck = new JButton("Edit");
+		btnCheck.setEnabled(true);
 		btnCheck.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (isBtnToEdit) {
@@ -290,68 +358,6 @@ public class Main {
 		
 		btnCheck.setBounds(195, 232, 140, 21);
 		editPanel.add(btnCheck);
-		
-	
-		txtMinPrice = new JTextField();
-		txtMinPrice.setColumns(1);
-		txtMinPrice.setBounds(160, 95, 66, h);
-		editPanel.add(txtMinPrice);
-		editPanelMinTxtFields.add(txtMinPrice);
-		// and listener!!!!!
-		
-		txtMaxPrice = new JTextField();
-		txtMaxPrice.setColumns(10);
-		txtMaxPrice.setBounds(269, 95, 66, h);
-		editPanel.add(txtMaxPrice);
-		editPanelMaxTxtFields.add(txtMaxPrice);
-		
-		txtMinTax = new JTextField();
-		txtMinTax.setColumns(10);
-		txtMinTax.setBounds(160, 118, 66, h);
-		editPanel.add(txtMinTax);
-		editPanelMinTxtFields.add(txtMinTax);
-		
-		txtMaxTax = new JTextField();
-		txtMaxTax.setColumns(10);
-		txtMaxTax.setBounds(269, 118, 66, h);
-		editPanel.add(txtMaxTax);
-		editPanelMaxTxtFields.add(txtMaxTax);
-		
-		txtMinTopSpeed = new JTextField();
-		txtMinTopSpeed.setColumns(10);
-		txtMinTopSpeed.setBounds(160, 141, 66, h);
-		editPanel.add(txtMinTopSpeed);
-		editPanelMinTxtFields.add(txtMinTopSpeed);
-		
-		txtMaxTopSpeed = new JTextField();
-		txtMaxTopSpeed.setColumns(10);
-		txtMaxTopSpeed.setBounds(269, 141, 66, h);
-		editPanel.add(txtMaxTopSpeed);
-		editPanelMaxTxtFields.add(txtMaxTopSpeed);
-		
-		txtMinAcc = new JTextField();
-		txtMinAcc.setColumns(10);
-		txtMinAcc.setBounds(160, 164, 66, h);
-		editPanel.add(txtMinAcc);
-		editPanelMinTxtFields.add(txtMinAcc);
-		
-		txtMaxAcc = new JTextField();
-		txtMaxAcc.setColumns(10);
-		txtMaxAcc.setBounds(269, 164, 66, h);
-		editPanel.add(txtMaxAcc);
-		editPanelMaxTxtFields.add(txtMaxAcc);
-		
-		txtMaxInertia = new JTextField();
-		txtMaxInertia.setColumns(10);
-		txtMaxInertia.setBounds(160, 187, 66, h);
-		editPanel.add(txtMaxInertia);
-		editPanelMinTxtFields.add(txtMaxInertia);
-		
-		txtMinInertia = new JTextField();
-		txtMinInertia.setColumns(10);
-		txtMinInertia.setBounds(269, 187, 66, h);
-		editPanel.add(txtMinInertia);
-		editPanelMaxTxtFields.add(txtMinInertia);
 		
 		// to
 		
@@ -375,15 +381,7 @@ public class Main {
 		lblTo6.setBounds(246, 187, 13, h);
 		editPanel.add(lblTo6);
 		
-		txtPriceKoef = new JTextField();
-		txtPriceKoef.setColumns(10);
-		txtPriceKoef.setBounds(160, 72, 175, h);
-		editPanel.add(txtPriceKoef);
-		
-		txtWeight = new JTextField();
-		txtWeight.setColumns(10);
-		txtWeight.setBounds(160, 46, 175, h);
-		editPanel.add(txtWeight);
+
 		
 		panel = new JPanel();
 		panel.setBounds(0, 0, 360, 263);
@@ -700,23 +698,20 @@ public class Main {
 	
 	static void checkTxtFieldValidity() {
 		boolean flag = false;
-		for (int i = 0; i < editPanelMinTxtFields.size(); i++) {
+		for (int i = 0; i < minTxtList.size(); i++) {
 //			System.out.println("Max field: "+String.valueOf(editPanelMaxTxtFields.get(i).getText()));
 //			System.out.println("Min field: "+String.valueOf(editPanelMinTxtFields.get(i).getText()));
-			if(isMinAndMaxTxtValid(editPanelMinTxtFields.get(i), 
-								   editPanelMaxTxtFields.get(i))) {
+			if(isMinAndMaxTxtValid(minTxtList.get(i), 
+								   maxTxtList.get(i))) {
 				flag = true;
 				continue;
 			}
 			flag = false;
 		}
 		if (flag) {
-			btnCheck.setText("Edit");
 			isBtnToEdit = true;
-		} else {
-			btnCheck.setText("Check");
-			
 		}
+		btnCheck.setEnabled(flag);
 	}
 	
 	static boolean isMinAndMaxTxtValid(JTextField minValue, JTextField maxValue) {
