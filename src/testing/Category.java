@@ -39,8 +39,9 @@ public class Category {
 			System.out.println("A value, probably, is missing in the passed Category map!");
 			return;
 		}
-		this.name = name + number+" - (" +(int) minPrice+ "-" +(int) maxPrice+")]";
+		this.name = name + number+" (" +(int) minPrice+ "-" +(int) maxPrice+")]";
 		all.add(this);
+		System.out.println("Initialized " +this.name);
 	}
 
 	public String toString() {

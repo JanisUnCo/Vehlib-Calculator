@@ -21,7 +21,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 public class Main {
-	static String root = System.getProperty("user.dir") + "\\src\\testing\\";
+//	static String root = System.getProperty("user.dir") + "\\src\\testing\\"; // for widnows
+	
+	static String root = System.getProperty("user.dir") + "/src/testing/"; 
 
 	public static Font tahomaBold = new Font("Tahoma", Font.BOLD, 10);
 	public static Font tahomaItalic = new Font("Tahoma", Font.ITALIC, 10);
@@ -34,6 +36,7 @@ public class Main {
 	public static Color generalTextColor = Color.black;
 
 	static boolean addTo = true;
+	static boolean overwrite = false;
 	public static boolean isEngineSizeSafe;
 	public static boolean isPriceSafe;
 	public static boolean isEditing = false;
@@ -83,8 +86,13 @@ public class Main {
 	
 	static HashMap<String, Double> categoryValues = new HashMap<String, Double>();
 	static ArrayList<String> categoryNameList = new ArrayList<String>();
+	
+	// why would I add these next 2?
+	// now I rembember - is for when they are looking if min > max, because alphabetical order
 	static ArrayList<JTextField> editPanelMinTxtFields = new ArrayList<JTextField>(); 
 	static ArrayList<JTextField> editPanelMaxTxtFields = new ArrayList<JTextField>(); 
+	
+	
 	static ArrayList<Category> categoryList = new ArrayList<Category>();
 	
 	static double engineKoef;
@@ -176,11 +184,31 @@ public class Main {
 		
 		JLabel lblName = new JLabel(lblText);
 		lblName.setFont(lblFont);
-		lblName.setBounds(bounds.x, bounds.y + yPeriod * position, 
-				bounds.width, bounds.height);
+		lblName.setBounds(bounds.x,
+						  bounds.y + yPeriod * position,
+						  bounds.width, 
+						  bounds.height);
 		parentPanel.add(lblName);
 		
 		return lblName;
+	}
+	
+	static JTextField createTxtField(JPanel parentPanel, ArrayList<JTextField> list, int columns,
+									  EditTxtFieldPanelListener listener, Bound bounds, 
+									  int yPeriod, int pos) {
+		// h = 19
+		JTextField txtField  = new JTextField();
+		txtField.setColumns(columns);
+		txtMinPrice.setBounds(bounds.x,
+							  bounds.y + yPeriod * pos,
+							  bounds.width,
+							  bounds.height);
+		parentPanel.add(txtField);
+		list.add(txtField);
+		txtField.addKeyListener(listener);
+		return txtField;
+		// and listener!!!!!
+		
 	}
 
 	static void addComboBox() {
@@ -263,13 +291,13 @@ public class Main {
 		btnCheck.setBounds(195, 232, 140, 21);
 		editPanel.add(btnCheck);
 		
-		
-
+	
 		txtMinPrice = new JTextField();
-		txtMinPrice.setColumns(10);
+		txtMinPrice.setColumns(1);
 		txtMinPrice.setBounds(160, 95, 66, h);
 		editPanel.add(txtMinPrice);
 		editPanelMinTxtFields.add(txtMinPrice);
+		// and listener!!!!!
 		
 		txtMaxPrice = new JTextField();
 		txtMaxPrice.setColumns(10);
@@ -510,6 +538,7 @@ public class Main {
 			
 			scan.close();
 			setConfigValuesToIntegers();
+			changeCategoryVariables(lastCat);
 			} catch (Exception e) {
 			System.out.println();
 			System.out.println(e);
@@ -684,6 +713,9 @@ public class Main {
 		if (flag) {
 			btnCheck.setText("Edit");
 			isBtnToEdit = true;
+		} else {
+			btnCheck.setText("Check");
+			
 		}
 	}
 	
