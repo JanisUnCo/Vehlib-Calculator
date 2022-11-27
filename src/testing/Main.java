@@ -21,9 +21,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 public class Main {
-	static String root = System.getProperty("user.dir") + "\\src\\testing\\"; // for widnows
+//	static String root = System.getProperty("user.dir") + "\\src\\testing\\"; // for widnows
 	
-//	static String root = System.getProperty("user.dir") + "/src/testing/"; 
+	static String root = System.getProperty("user.dir") + "/src/testing/"; 
 
 	public static Font tahomaBold = new Font("Tahoma", Font.BOLD, 10);
 	public static Font tahomaItalic = new Font("Tahoma", Font.ITALIC, 10);
@@ -34,8 +34,8 @@ public class Main {
 	 
 	public static Bound editPanelMainLblBound = new Bound(20, 49, 117, 13);
 	public static Bound editPanelTxtLeftColBound = new Bound(160, 69+23, 66, 19);
-//	public static Bound editPanelToLblBound = new Bound();
-//	public static Bound editPanelTxtRightColBound = new Bound();
+	public static Bound editPanelToLblBound = new Bound(240, 95, 13, 19);
+	public static Bound editPanelTxtRightColBound = new Bound(269, 69+23, 66, 19);
 	
 	public static Color invalidTextColor = Color.red;
 	public static Color generalTextColor = Color.black;
@@ -204,73 +204,28 @@ public class Main {
 		txtWeight.setBounds(160, 46, 175, 19);
 		editPanel.add(txtWeight);
 		
+		
+		// temporarily placed here, until I sort methods out
 		EditTxtFieldPanelListener listener = new EditTxtFieldPanelListener();
 		
 		txtMinPrice = createTxtField(editPanel, minTxtList, 1, listener, editPanelTxtLeftColBound, lowerPeriod, 0);
+		txtMinTax = createTxtField(editPanel, minTxtList, 1, listener, editPanelTxtLeftColBound, lowerPeriod,1);
+		txtMinTopSpeed = createTxtField(editPanel, minTxtList, 1, listener, editPanelTxtLeftColBound, lowerPeriod, 2);
+		txtMinAcc = createTxtField(editPanel, minTxtList, 1, listener, editPanelTxtLeftColBound, lowerPeriod, 3);
+		txtMinInertia = createTxtField(editPanel, minTxtList, 1, listener, editPanelTxtLeftColBound, lowerPeriod, 4);
 		
-		txtMinPrice = new JTextField();
-		txtMinPrice.setColumns(1);
-		txtMinPrice.setBounds(160, 95, 66, h);
-		editPanel.add(txtMinPrice);
-		minTxtList.add(txtMinPrice);
-		// and listener!!!!!
+		txtMaxPrice = createTxtField(editPanel, maxTxtList, 1, listener, editPanelTxtRightColBound, lowerPeriod, 0);
+		txtMaxTax = createTxtField(editPanel, maxTxtList, 1, listener, editPanelTxtRightColBound, lowerPeriod, 1);
+		txtMaxTopSpeed	= createTxtField(editPanel, maxTxtList, 1, listener, editPanelTxtRightColBound, lowerPeriod, 2);	
+		txtMaxAcc = createTxtField(editPanel, maxTxtList, 1, listener, editPanelTxtRightColBound, lowerPeriod, 3);
+		txtMaxInertia = createTxtField(editPanel, maxTxtList, 1, listener, editPanelTxtRightColBound, lowerPeriod, 4);
 		
-		txtMaxPrice = new JTextField();
-		txtMaxPrice.setColumns(10);
-		txtMaxPrice.setBounds(269, 95, 66, h);
-		editPanel.add(txtMaxPrice);
-		maxTxtList.add(txtMaxPrice);
-		
-		txtMinTax = new JTextField();
-		txtMinTax.setColumns(10);
-		txtMinTax.setBounds(160, 118, 66, h);
-		editPanel.add(txtMinTax);
-		minTxtList.add(txtMinTax);
-		
-		txtMaxTax = new JTextField();
-		txtMaxTax.setColumns(10);
-		txtMaxTax.setBounds(269, 118, 66, h);
-		editPanel.add(txtMaxTax);
-		maxTxtList.add(txtMaxTax);
-		
-		txtMinTopSpeed = new JTextField();
-		txtMinTopSpeed.setColumns(10);
-		txtMinTopSpeed.setBounds(160, 141, 66, h);
-		editPanel.add(txtMinTopSpeed);
-		minTxtList.add(txtMinTopSpeed);
-		
-		txtMaxTopSpeed = new JTextField();
-		txtMaxTopSpeed.setColumns(10);
-		txtMaxTopSpeed.setBounds(269, 141, 66, h);
-		editPanel.add(txtMaxTopSpeed);
-		maxTxtList.add(txtMaxTopSpeed);
-		
-		txtMinAcc = new JTextField();
-		txtMinAcc.setColumns(10);
-		txtMinAcc.setBounds(160, 164, 66, h);
-		editPanel.add(txtMinAcc);
-		minTxtList.add(txtMinAcc);
-		
-		txtMaxAcc = new JTextField();
-		txtMaxAcc.setColumns(10);
-		txtMaxAcc.setBounds(269, 164, 66, h);
-		editPanel.add(txtMaxAcc);
-		maxTxtList.add(txtMaxAcc);
-		
-		txtMaxInertia = new JTextField();
-		txtMaxInertia.setColumns(10);
-		txtMaxInertia.setBounds(160, 187, 66, h);
-		editPanel.add(txtMaxInertia);
-		minTxtList.add(txtMaxInertia);
-		
-		txtMinInertia = new JTextField();
-		txtMinInertia.setColumns(10);
-		txtMinInertia.setBounds(269, 187, 66, h);
-		editPanel.add(txtMinInertia);
-		maxTxtList.add(txtMinInertia);
-		
-		
-		
+		lblTo1 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 0);
+		lblTo2 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 1);
+		lblTo3 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 2);
+		lblTo4 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 3);
+		lblTo6 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 4);
+
 	}
 
 	static JLabel createLabel (JPanel parentPanel, String lblText, 
@@ -359,29 +314,6 @@ public class Main {
 		btnCheck.setBounds(195, 232, 140, 21);
 		editPanel.add(btnCheck);
 		
-		// to
-		
-		lblTo1 = new JLabel("to");
-		lblTo1.setBounds(246, 95, 13, h);
-		editPanel.add(lblTo1);
-		
-		lblTo2 = new JLabel("to");
-		lblTo2.setBounds(246, 118, 13, h);
-		editPanel.add(lblTo2);
-		
-		lblTo3 = new JLabel("to");
-		lblTo3.setBounds(246, 141, 13, h);
-		editPanel.add(lblTo3);
-		
-		lblTo4 = new JLabel("to");
-		lblTo4.setBounds(246, 164, 13, h);
-		editPanel.add(lblTo4);
-		
-		lblTo6 = new JLabel("to");
-		lblTo6.setBounds(246, 187, 13, h);
-		editPanel.add(lblTo6);
-		
-
 		
 		panel = new JPanel();
 		panel.setBounds(0, 0, 360, 263);
