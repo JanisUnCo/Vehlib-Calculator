@@ -77,7 +77,7 @@ public class Main {
 	private static JLabel lblPrice;
 	private static JLabel lblEngineSize;
 	
-	static JButton btnCheck;
+	static JButton btnEdit;
 	
 	public static double intPrice;
 	public static double intEngineSize;
@@ -142,7 +142,7 @@ public class Main {
 	private static JLabel lblTo2;
 	private static JLabel lblTo3;
 	private static JLabel lblTo4;
-	private static JLabel lblTo6;
+	private static JLabel lblTo5;
 
 	
 	public static void main(String[] args) {
@@ -224,7 +224,7 @@ public class Main {
 		lblTo2 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 1);
 		lblTo3 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 2);
 		lblTo4 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 3);
-		lblTo6 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 4);
+		lblTo5 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, lowerPeriod, 4);
 
 	}
 
@@ -249,9 +249,9 @@ public class Main {
 		JTextField txtField  = new JTextField();
 		txtField.setColumns(columns);
 		txtField.setBounds(bounds.x,
-							  bounds.y + yPeriod * pos,
-							  bounds.width,
-							  bounds.height);
+						   bounds.y + yPeriod * pos,
+						   bounds.width,
+						   bounds.height);
 		parentPanel.add(txtField);
 		list.add(txtField);
 		txtField.addKeyListener(listener);
@@ -293,26 +293,24 @@ public class Main {
 		frame.getContentPane().add(editPanel);
 		editPanel.setLayout(null);
 
-		int h = 19;
-		
 		JButton btnRemoveCategory = new JButton("Remove");
 		btnRemoveCategory.setBounds(20, 233, 145, 21);
 		editPanel.add(btnRemoveCategory);
 		
-		btnCheck = new JButton("Edit");
-		btnCheck.setEnabled(true);
-		btnCheck.addActionListener(new ActionListener() {
+		btnEdit = new JButton("Edit");
+		btnEdit.setEnabled(true);
+		btnEdit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (isBtnToEdit) {
-					writeTxtFieldValuesToHash();
+					writeTxtToObj();
 					writeEditDataToConfig();
 				}
 				checkTxtFieldValidity();
 			}
 		});
 		
-		btnCheck.setBounds(195, 232, 140, 21);
-		editPanel.add(btnCheck);
+		btnEdit.setBounds(195, 232, 140, 21);
+		editPanel.add(btnEdit);
 		
 		
 		panel = new JPanel();
@@ -476,6 +474,7 @@ public class Main {
 			System.out.println();
 			System.out.println("Something went south in initializing!");
 		}	
+		Category.printAll();
 	}
 	
 	static void changeCategoryVariables(double catNum) {
@@ -494,33 +493,6 @@ public class Main {
 		maxAcc = obj.maxAcc;
 		minInertia = obj.minInertia;
 		maxInertia = obj.maxInertia;
-		
-		System.out.println(minPrice);
-		
-//		setConfigValuesToIntegers();
-		
-//		File file = new File(root+"values.conf");
-//		try {
-//			Scanner scan = new Scanner(file);
-//			while (scan.hasNextLine()) {
-//				String line = scan.nextLine();
-//				if (line.contains("[Category "+(int)(catNum+1))) {
-//					System.out.println("Found line for cat!");
-//					for (int i = 0; i < 12; i++) {
-//						String []_line = scan.nextLine().split("=");
-//						String key = _line[0].trim();
-//						Double value = Double.parseDouble(_line[1].trim());
-//						categoryValues.replace(key, value);
-//					}
-//				}
-//			}
-//			
-//			setConfigValuesToIntegers();
-//			scan.close();
-//		} catch (Exception e) {
-//
-//		}
-	
 	}
 
 	static void checkPrice() {
@@ -643,7 +615,7 @@ public class Main {
 		if (flag) {
 			isBtnToEdit = true;
 		}
-		btnCheck.setEnabled(flag);
+		btnEdit.setEnabled(flag);
 	}
 	
 	static boolean isMinAndMaxTxtValid(JTextField minValue, JTextField maxValue) {
@@ -675,48 +647,93 @@ public class Main {
 		
 		File file = new File(root+"values.conf");
 		try {
-			FileWriter fw = new FileWriter(file.getAbsolutePath(), addTo);
+			FileWriter fw = new FileWriter(file.getAbsoluteFile(), overwrite);
 			Scanner scan = new Scanner(file);
-			int comboBoxIndex = comboBox.getSelectedIndex()+1;
-			System.out.println(comboBoxIndex);
-			while (scan.hasNextLine()) {
-//				System.out.println("scanning #1");
-				String line = scan.nextLine();
-//				System.out.println(line);
-				if (line.contains("[Category "+comboBoxIndex)) {
-					System.out.println("FOUND LINE TO EDIT!");
-					for (int i = 0; i < 13; i++) {
-						// issue lies, that it writes at the end of the file!
-						String []_line = scan.nextLine().split("=");
-						String key = _line[0].trim();
-//						Double value = Double.parseDouble(_line[1].trim());
-						String toReplace = key + " = " + categoryValues.get(key);
-						System.out.println(toReplace);
-//						fw.append(key + " = " + categoryValues.get(key));
-					}
-				}
+
+			System.out.println("startin to write");
+			fw.write("[Global settings]"+"\n");
+			fw.write("lastCat  = "+categoryValues.get("lastCat")+"\n");
+			fw.write("engineKoef = "+categoryValues.get("engineKoef")+"\n");
+			fw.write("minEngineSize = "+categoryValues.get("minEngineSize")+"\n");
+			fw.write("maxEngineSize = "+categoryValues.get("maxEngineSize")+"\n");
+			fw.write("\n");
+				
+			for (int i = 0;i+1 < comboBox.getItemCount()+1; i++) {
+				Category cat = Category.all.get(i);
+				fw.write("["+cat.name+"]"+"\n");
+				fw.write("weight = "+cat.weight+"\n");
+				fw.write("priceKoef = "+cat.priceKoef+"\n");
+				fw.write("minPrice = "+cat.minPrice+"\n");
+				fw.write("maxPrice = "+cat.maxPrice+"\n");
+				fw.write("minTax = "+cat.minTax+"\n");
+				fw.write("maxTax = "+cat.maxTax+"\n");
+				fw.write("minTopSpeed = "+cat.minTopSpeed+"\n");
+				fw.write("maxTopSpeed = "+cat.maxTopSpeed+"\n");
+				fw.write("minAcc = "+cat.minAcc+"\n");
+				fw.write("maxAcc = "+cat.maxAcc+"\n");
+				fw.write("minInertia = "+cat.minInertia+"\n");
+				fw.write("maxInertia = "+cat.maxInertia+"\n");
+				fw.write("\n");				
 			}
-			scan.close();
 			fw.close();
+			scan.close();
 		} catch (Exception e) {
-			// TODO: handle exception
+			System.out.println("Bad!");
+			System.out.println();
+			System.out.println(e);
+			System.out.println(e.getStackTrace()[0]);
+			System.out.println();
 		}
+		
+		
+		
+//		try {
+//			FileWriter fw = new FileWriter(file.getAbsolutePath(), addTo);
+//			Scanner scan = new Scanner(file);
+//			int comboBoxIndex = comboBox.getSelectedIndex()+1;
+//			System.out.println(comboBoxIndex);
+//			while (scan.hasNextLine()) {
+////				System.out.println("scanning #1");
+//				String line = scan.nextLine();
+////				System.out.println(line);
+//				if (line.contains("[Category "+comboBoxIndex)) {
+//					System.out.println("FOUND LINE TO EDIT!");
+//					for (int i = 0; i < 13; i++) {
+//						// issue lies, that it writes at the end of the file!
+//						String []_line = scan.nextLine().split("=");
+//						String key = _line[0].trim();
+////						Double value = Double.parseDouble(_line[1].trim());
+//						String toReplace = key + " = " + categoryValues.get(key);
+//						System.out.println(toReplace);
+////						fw.append(key + " = " + categoryValues.get(key));
+//					}
+//				}
+//			}
+//			scan.close();
+//			fw.close();
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//		}
 	}
 	
-	static void writeTxtFieldValuesToHash() {
-		// I could fix this mess by making an extremely crude string operator system and loops
-		// Note on the last comment - you cannot, might go with using extend JTextField
-		categoryValues.replace("weight", Double.parseDouble(txtWeight.getText()));
-		categoryValues.replace("priceKoef", Double.parseDouble(txtPriceKoef.getText()));
-		categoryValues.replace("minPrice", Double.parseDouble(txtMinPrice.getText()));
-		categoryValues.replace("maxPrice", Double.parseDouble(txtMaxPrice.getText()));
-		categoryValues.replace("maxTax", Double.parseDouble(txtMaxTax.getText()));
-		categoryValues.replace("minTopSpeed", Double.parseDouble(txtMinTopSpeed.getText()));
-		categoryValues.replace("maxTopSpeed", Double.parseDouble(txtMaxTopSpeed.getText()));
-		categoryValues.replace("minAcc", Double.parseDouble(txtMinAcc.getText()));
-		categoryValues.replace("maxAcc", Double.parseDouble(txtMaxAcc.getText()));
-		categoryValues.replace("minInertia", Double.parseDouble(txtMinInertia.getText()));
-		categoryValues.replace("maxInertia", Double.parseDouble(txtMaxInertia.getText()));
+	static void writeTxtToObj() {
+		// this is bad, I know
+		int index = comboBox.getSelectedIndex();
+		Category.all.get(index).weight = Double.parseDouble(txtWeight.getText());
+		Category.all.get(index).priceKoef = Double.parseDouble(txtPriceKoef.getText());
+		Category.all.get(index).minPrice = Double.parseDouble(txtMinPrice.getText());
+		Category.all.get(index).maxPrice = Double.parseDouble(txtMaxPrice.getText());
+		Category.all.get(index).minTax = Double.parseDouble(txtMinTax.getText());
+		Category.all.get(index).maxTax = Double.parseDouble(txtMaxTax.getText());
+		Category.all.get(index).minTopSpeed = Double.parseDouble(txtMinTopSpeed.getText());
+		Category.all.get(index).maxTopSpeed = Double.parseDouble(txtMaxTopSpeed.getText());
+		Category.all.get(index).minAcc = Double.parseDouble(txtMinAcc.getText());
+		Category.all.get(index).maxAcc = Double.parseDouble(txtMaxAcc.getText());
+		Category.all.get(index).minInertia = Double.parseDouble(txtMinInertia.getText());
+		Category.all.get(index).maxInertia = Double.parseDouble(txtMaxInertia.getText());
+		Category.all.get(index).name = "Category "+(index+1)
+				+" ("+txtMinPrice.getText()+"-"+txtMaxPrice.getText()+")";
+
 	}
 	
 	
