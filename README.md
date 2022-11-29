@@ -1,7 +1,6 @@
 # VehlibCalculator
 ## To-Add
- - Fix the file writing, so it writes to specific lines;
-    The logic goes along lines - as all category values are saved to objects, then, after editing, you edit the values in the specific category. After that, override everything in the config file. 
+ - ~Fix the file writing, so it writes to specific lines;~
  - Ability to create new categories;
 
  ## To-Fix
