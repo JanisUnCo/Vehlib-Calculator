@@ -55,6 +55,8 @@ public class Main {
 	public static boolean isEditing = false;
 	public static boolean isBtnToEdit = false;
 	public static boolean isInitialized = false;
+	public static boolean isAdding = false;
+	public static boolean isRemovable = true;
 	public static double lastCat; // double instead of int, otherwise I will need to code more in one of the methods
 	
 	// GUI
@@ -87,6 +89,7 @@ public class Main {
 	private static JLabel lblEngineSize;
 	
 	static JButton btnEdit;
+	static JButton btnRemoveCategory;
 	
 	public static double intPrice;
 	public static double intEngineSize;
@@ -262,7 +265,7 @@ public class Main {
 	}
 	static void addButtons() {
 
-		JButton btnRemoveCategory = new JButton("Remove");
+		btnRemoveCategory = new JButton("Remove");
 		btnRemoveCategory.setBounds(20, 233, 145, 21);
 		btnRemoveCategory.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
@@ -290,9 +293,6 @@ public class Main {
 		});
 		btnBack.setBounds(20, 18, 41, 21);
 		editPanel.add(btnBack);
-		// (42, 18, 273, 21);
-		// (20, 49, 117, 13); edit panel main lbl bound
-		
 		btnGlobalSettings = new JButton("G");
 		btnGlobalSettings.setBounds(289, 18, 45, 21);
 		editPanel.add(btnGlobalSettings);
@@ -307,12 +307,27 @@ public class Main {
 	}
 	
 	static void backButtonAction() {
+		isEditing = false;
 		editPanel.setVisible(false);
 		mainPanel.setVisible(true);
-		mainPanel.add(comboBox);
-		comboBox.setBounds(mainComboBoxRec);
-		isEditing = false;
+		removeComboBox();
 		fillComboBox();
+		addComboBox();
+		comboBox.setSelectedIndex(0);
+		
+		/*
+		isEditing = true;
+		mainPanel.setVisible(false);
+		editPanel.setVisible(true);
+		addButtons();
+		removeComboBox();
+		fillComboBox();
+		addComboBox();
+		comboBox.setBounds(editComboBoxRec); // COMBOBOX BOUND CHANGE!!
+//		comboBox.removeItemAt(comboBox.getItemCount()-1);
+		comboBox.setSelectedIndex(0);
+		System.out.println(comboBoxElements[comboBoxElements.length-1]);
+		*/
 	}
 	
 	static void removeButtonAction() {
@@ -324,22 +339,19 @@ public class Main {
 
 	static void addComboBox() {
 		ComboBoxActionListener listener = new ComboBoxActionListener();
-		
 		comboBox = new JComboBox<String>(comboBoxElements);
-		comboBox.setBounds(mainComboBoxRec);
 		comboBox.addActionListener(listener); 
 		if (isEditing) {
+			comboBox.setBounds(editComboBoxRec);
 			editPanel.add(comboBox);
 			return;
 		}
 		mainPanel.add(comboBox);
+		comboBox.setBounds(mainComboBoxRec);
 	}
 	
 	static void removeComboBox() {
-		if (isEditing) {
-			editPanel.remove(comboBox);
-			return;
-		}
+		editPanel.remove(comboBox);
 		mainPanel.remove(comboBox);
 	}
 	
@@ -498,9 +510,9 @@ public class Main {
 		Category.printAll();
 		isInitialized = true;
 	}
+	
 	static void fillComboBox() {
 		int size = Category.all.size();
-		System.out.println("Size: "+size);
 		comboBoxElements = new String[size+1];
 		System.out.println("Length: "+comboBoxElements.length);
 		for (int i = 0; i < comboBoxElements.length-1; i++) {
@@ -515,6 +527,7 @@ public class Main {
 	
 	static void changeCategoryVariables(double catNum) {
 		Category obj = Category.all.get((int)catNum);
+		System.out.println("     Changing variables to "+obj.name);
 		weight = obj.weight;
 		priceKoef = obj.priceKoef;
 		
@@ -588,38 +601,79 @@ public class Main {
 			engineSize.setForeground(invalidTextColor);
 		}
 	}
+	static boolean isLastElementAndIsEditing(boolean editing) {
+		return comboBox.getSelectedIndex()+1 == comboBox.getItemCount() && isEditing == editing;
+	}
+	
+	static boolean isNotLastElementAndIsEditing(boolean editing) {
+		return comboBox.getSelectedIndex()+1 != comboBox.getItemCount() && isEditing == editing;
+	}
+	
 
 	
 	public static void changeCategories() {
-		if (comboBox.getSelectedIndex()+1 == comboBox.getItemCount() && isEditing == false) {
-			startCategoryEdit();
+		if (isLastElementAndIsEditing(false)) {
+			isRemovable = true;	
+			System.out.println("Changing panel to edit.");
+			changePanelToEdit();
+			changeCategoryVariables(comboBox.getSelectedIndex());
+		}
+		if (isLastElementAndIsEditing(true)) {
+			System.out.println("Starting new cat input.");
+			isRemovable = false;
+			startNewCategoryInput();
 		}
 		
-		changeCategoryVariables(comboBox.getSelectedIndex());
-		lastCat = (double)comboBox.getSelectedIndex();
-		if (isEditing) {
+		System.out.println("# selected + 1 = "+(comboBox.getSelectedIndex()+1));
+		System.out.println("# item counts = "+comboBox.getItemCount());
+		System.out.println("# is editing = "+isEditing);
+		
+		if (isNotLastElementAndIsEditing(true)) {
+			changeCategoryVariables(comboBox.getSelectedIndex());
 			writeValuesInTxt();
-			return;
 		}
+		
+		if (isNotLastElementAndIsEditing(false)) {
+			changeCategoryVariables(comboBox.getSelectedIndex());
+		}
+		
+		lastCat = (double)comboBox.getSelectedIndex();
 		checkEngine();
 		checkPrice();			
 	}
 	
-	static void startCategoryEdit() {
+	static void changePanelToEdit() {
 		isEditing = true;
 		mainPanel.setVisible(false);
 		editPanel.setVisible(true);
 		addButtons();
 		removeComboBox();
-		addComboBox();
 		fillComboBox();
-		editPanel.repaint();
-		comboBox.setBounds(editComboBoxRec); // COMBOBOX BOUND CHANGE!!
-//		comboBox.removeItemAt(comboBox.getItemCount()-1);
+		addComboBox();
 		comboBox.setSelectedIndex(0);
 		System.out.println(comboBoxElements[comboBoxElements.length-1]);
-		editPanel.add(comboBox);
 		
+	}
+	
+	static void startNewCategoryInput() {
+		clearTxtFields();
+		editBtnToAddBtn();
+		btnRemoveCategory.setEnabled(isRemovable);
+	}
+	
+	static void clearTxtFields() {
+		txtMinAcc.setText(null);
+		txtMaxAcc.setText(null);
+		txtMinInertia.setText(null);
+		txtMaxInertia.setText(null);
+		txtMaxPrice.setText(null);
+		txtMinPrice.setText(null);
+		txtMaxTax.setText(null);
+		txtMinTax.setText(null);
+		txtMaxTopSpeed.setText(null);
+		txtMinTopSpeed.setText(null);
+		txtPriceKoef.setText(null);
+		txtWeight.setText(null);
 	}
 	
 	static void writeValuesInTxt() {
@@ -636,6 +690,11 @@ public class Main {
 		txtPriceKoef.setText(String.valueOf(priceKoef));
 		txtWeight.setText(String.valueOf(weight));
 		
+	}
+	
+	static void editBtnToAddBtn() {
+		btnEdit.setText("Add");
+		isAdding = true;
 	}
 	
 	static void checkTxtFieldValidity() {
