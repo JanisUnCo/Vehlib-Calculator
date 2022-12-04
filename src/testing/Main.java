@@ -21,9 +21,11 @@ import javax.swing.JComboBox;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.ActionEvent;
 
-public class Main {
+public class Main implements KeyListener, ActionListener  {
 //	static String root = System.getProperty("user.dir") + "\\src\\testing\\"; // for widnows
 
 	static String root = System.getProperty("user.dir") + "/src/testing/";
@@ -163,6 +165,21 @@ public class Main {
 		initializeStart();
 		startGUI();	
 		System.out.println(categoryList);
+	}
+	
+	public void actionPerformed(ActionEvent e) {
+		int currentIndex = comboBox.getSelectedIndex();
+//		System.out.println("Current ind: "+currentIndex);
+//		System.out.println("Last index: "+Main.lastCat);
+		if ((int)lastCat != currentIndex) 
+			System.out.println("Change detected!");
+			changeCategories();
+	}
+	
+	public void keyReleased(KeyEvent e) {
+		checkEngine();
+		checkPrice();
+		checkTxtFieldValidity();
 	}
 	
 	static void addLabels() {
@@ -306,10 +323,19 @@ public class Main {
 		checkTxtFieldValidity();
 	}
 	
+	static void swapPanels() {
+		if (mainPanel.isVisible()) {
+			mainPanel.setVisible(false);
+			editPanel.setVisible(true);
+			return;
+		}
+		mainPanel.setVisible(true);
+		editPanel.setVisible(false);
+	}
+	
 	static void backButtonAction() {
 		isEditing = false;
-		editPanel.setVisible(false);
-		mainPanel.setVisible(true);
+		swapPanels();
 		removeComboBox();
 		fillComboBox();
 		addComboBox();
@@ -332,15 +358,19 @@ public class Main {
 	
 	static void removeButtonAction() {
 		int index = comboBox.getSelectedIndex();
-		JOptionPane.showConfirmDialog(null,
-	             "Do you really want to remove"+Category.all.get(index).name, "Promt of removal!",  
+		int reply = JOptionPane.showConfirmDialog(null,
+	             "Do you really want to remove "+Category.all.get(index).name+" ?", "Promt of removal!",  
 	             JOptionPane.YES_NO_OPTION);
+		if (reply == JOptionPane.YES_OPTION) {
+			//remove kebab
+		}
 	}
 
 	static void addComboBox() {
-		ComboBoxActionListener listener = new ComboBoxActionListener();
+		Main listener = new Main();
 		comboBox = new JComboBox<String>(comboBoxElements);
 		comboBox.addActionListener(listener); 
+		
 		if (isEditing) {
 			comboBox.setBounds(editComboBoxRec);
 			editPanel.add(comboBox);
@@ -408,7 +438,6 @@ public class Main {
 	}
 	
 	public static void doMath(double engineSize2, double price2 ) {
-		System.out.println("Called!");
 		double internalPrice = 0;
 		double internalEki = 0;
 		double internalPercent = 0;
@@ -518,11 +547,16 @@ public class Main {
 		for (int i = 0; i < comboBoxElements.length-1; i++) {
 			comboBoxElements[i] = Category.all.get(i).name;
 		}
+		setCorrectLastElement();
+	}
+		
+	
+	static void setCorrectLastElement() {
 		if (isEditing) {
 			comboBoxElements[comboBoxElements.length-1] = ("Add new");
 			return;
 		}
-		comboBoxElements[comboBoxElements.length-1] = ("Add, edit or remove...");
+		comboBoxElements[comboBoxElements.length-1] = ("Add, edit or remove...");		
 	}
 	
 	static void changeCategoryVariables(double catNum) {
@@ -569,7 +603,7 @@ public class Main {
 			}
 			
 		} catch (Exception e2) {
-			System.out.println("Invalid char in Price!");
+//			System.out.println("Invalid char in Price!");
 			priceField.setForeground(invalidTextColor);		
 		}
 	}
@@ -597,7 +631,7 @@ public class Main {
 			
 			
 		} catch (Exception e2) {
-			System.out.println("Invalid char in Engine!");
+//			System.out.println("Invalid char in Engine!");
 			engineSize.setForeground(invalidTextColor);
 		}
 	}
