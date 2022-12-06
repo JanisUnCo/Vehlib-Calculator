@@ -44,7 +44,7 @@ public class Category {
 		System.out.println("Initialized " +this.name);
 	}
 
-	public static  void printAll() {
+	public static void printAll() {
 		System.out.println(all.toString());
 	}
 	
