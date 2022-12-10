@@ -9,7 +9,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileWriter;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -28,6 +30,8 @@ public class Main implements KeyListener, ActionListener  {
 	static ImageIcon img = new ImageIcon(root+"icon.png");
 	static Main listener = new Main();
 	
+	static File configFile = new File(root+"values.conf");
+	
 	// Fonts
 	public static Font tahomaBold = new Font("Tahoma", Font.BOLD, 10);
 	public static Font tahomaItalic = new Font("Tahoma", Font.ITALIC, 10);
@@ -42,15 +46,17 @@ public class Main implements KeyListener, ActionListener  {
 	// Flags
 	static boolean addTo = true;
 	static boolean overwrite = false;
+	static boolean printDebugs = false;
+	static boolean isCreatingNewConfig = false;
 	public static boolean isEngineSizeSafe;
 	public static boolean isPriceSafe;
 	public static boolean isEditing = false;
 	public static boolean isEditingGlobal = false;
-	public static boolean isBtnToEdit = false;
+	public static boolean isEditBtnEditing = true;
 	public static boolean isInitialized = false;
-	public static boolean isAdding = false;
 	public static boolean isRemovable = true;
 	public static boolean isEditInitialized = false;
+	
 	// double instead of int, otherwise I will need to code more in one of the methods
 	public static double lastCat; 
 	
@@ -67,6 +73,7 @@ public class Main implements KeyListener, ActionListener  {
 	public static Bound leftColLowerLblBound = new Bound(42, 123, 144, 13);
 	public static Bound leftColUpperLblBound = new Bound(42, 52, 144, 13);
 	public static Bound rightColLowerLblBound = new Bound(171, 123, 144, 13);
+	public static Bound mainTxtFieldBound = new Bound(171, 49, 144, 19);
 	
 	public static double inputPrice;
 	public static double inputEngineSize;
@@ -150,7 +157,8 @@ public class Main implements KeyListener, ActionListener  {
 	
 	static JButton btnGlobalBack;
 	static JButton btnGlobalEdit;
-
+	static JButton btnGlobalSettings;
+	
 	// Mathematical variables
 	private static double originalPrice = 0;
 	private static double gamePrice = 0;
@@ -184,15 +192,15 @@ public class Main implements KeyListener, ActionListener  {
 	static ArrayList<JTextField> minEditTxtList = new ArrayList<JTextField>(); 
 	static ArrayList<JTextField> maxEditTxtList = new ArrayList<JTextField>(); 
 	
-
-	private static JButton btnGlobalSettings;
+	static ArrayList<JTextField> mainTxtList = new ArrayList<JTextField>(); // check if sizes are good
+	static ArrayList<JTextField> editTxtMainList = new ArrayList<JTextField>(); // check if numeral
+	static ArrayList<JTextField> editTxtRangesList = new ArrayList<JTextField>(); // check if numeral and if min < max
+	static ArrayList<JTextField> globalTxtList = new ArrayList<JTextField>(); // check if numeral
 
 
 	public static void main(String[] args) {
-		System.out.println(root);
+		System.out.println(root); // DEBUG
 		readConfig();
-		startGUI();	
-		System.out.println(Category.all);
 	}
 	
 	// Methods
@@ -205,17 +213,27 @@ public class Main implements KeyListener, ActionListener  {
 		editPanel.setVisible(false);
 		fillComboBox();
 		addComboBox();
-		lastCat = comboBox.getSelectedIndex();
+		comboBox.setSelectedIndex((int) lastCat);
 	}
 	
 	// Events
 	public void keyReleased(KeyEvent e) {
 		JTextField source = (JTextField) e.getSource();
-		if (source == txtPriceField) checkPriceField();
-		if (source == txtEngineSize) checkEngineSizeField();
-		checkTxtFieldValidity();
+		if (mainTxtList.contains(source)) {
+			checkMainTxtFields();
+		}
+		if(editTxtMainList.contains(source) ||
+		   editTxtRangesList.contains(source)) {
+			btnEdit.setEnabled(areEditTxtFieldsValid());
+			checkEditTxtFieldValidity();
+		}
+		if(globalTxtList.contains(source)) {
+			btnGlobalEdit.setEnabled(areTxtListNumerics(globalTxtList));
+		}
 	}
 	
+	
+	// Events
 	public void actionPerformed(ActionEvent e) { //
 		try { // the use of try/catch here is due to different sources
 			if (e.getSource() instanceof JButton) {
@@ -226,6 +244,7 @@ public class Main implements KeyListener, ActionListener  {
 				if (btnSource == btnGlobalSettings)		editOpenGlobalSettingsButtonAction();
 				if (btnSource == btnGlobalBack) 		globalSettingBackButtonAction();
 				if (btnSource == btnGlobalEdit)			globalSettingEditButtonAction();
+				
 			}
 			if (e.getSource() instanceof JComboBox) {
 				JComboBox comboBoxSource = (JComboBox) e.getSource();
@@ -236,20 +255,62 @@ public class Main implements KeyListener, ActionListener  {
 		}
 	}
 	
+	static void checkMainTxtFields() {
+		checkPriceField();
+		checkEngineSizeField();
+	}
+	
 	static void checkPriceField() {
-		checkTxtField(txtPriceField, inputPrice, minPrice, maxPrice, isPriceSafe);
+		checkTxtLimits(txtPriceField, inputPrice, minPrice, maxPrice, isPriceSafe);
 		tryMath();
 	}
 	
 	static void checkEngineSizeField() {
-		checkTxtField(txtEngineSize, inputEngineSize, minEngineSize, maxEngineSize, isEngineSizeSafe);
+		checkTxtLimits(txtEngineSize, inputEngineSize, minEngineSize, maxEngineSize, isEngineSizeSafe);
 		tryMath();
 	}
 	
 	static void tryCategoryChange() {
 		if ((int)lastCat != comboBox.getSelectedIndex()) 
-			System.out.println("Change detected!");
 			changeCategories();
+	}
+	
+	public static void changeCategories() {
+		updateLastCat();
+		System.out.println("lastCat: "+lastCat);
+		if (isLastElementAndIsEditing(false)) {
+			System.out.println("Changing panel to edit.");
+			changePanelToEdit();
+			changeCategoryVariables(comboBox.getSelectedIndex());
+		}
+		
+		if (isNotLastElementAndIsEditing(false)) {
+			changeCategoryVariables(comboBox.getSelectedIndex());
+		}
+		
+		if (isLastElementAndIsEditing(true)) {
+			System.out.println("Starting new cat input.");
+			startNewCategoryInput();
+		}
+		
+		if (isNotLastElementAndIsEditing(true)) {
+			btnEditRemoveCategory.setEnabled(isRemovable);
+			changeCategoryVariables(comboBox.getSelectedIndex());
+			setValuesToTxt();
+		}
+		lastCat = (double)comboBox.getSelectedIndex();
+		checkPriceField();
+		checkEngineSizeField();
+	}
+	
+	static void changePanelToEdit() {
+		isEditing = true;
+		isRemovable = true;
+		if (comboBox.getItemCount() == 2) isRemovable = false;
+		swapToPanel(editPanel);
+		refreshComboBox();
+		comboBox.setSelectedIndex(0);
+		System.out.println(comboBoxElements[comboBoxElements.length-1]);
 	}
 	
 	// Creator functions
@@ -265,17 +326,17 @@ public class Main implements KeyListener, ActionListener  {
 		return lblName;
 	}
 		
-	static JTextField createTxtField(JPanel parentPanel, ArrayList<JTextField> list, int columns,
+	static JTextField createTxtField(JPanel parentPanel, ArrayList<JTextField> groupList, int columns,
 							  Main listener, Bound bounds, 
 							  int yPeriod, int pos) {
 		JTextField txtField  = new JTextField();
 		txtField.setColumns(columns);
 		txtField.setBounds(bounds.x,
-				   bounds.y + yPeriod * pos,
-				   bounds.width,
-				   bounds.height);
+						   bounds.y + yPeriod * pos,
+						   bounds.width,
+						   bounds.height);
 		parentPanel.add(txtField);
-		if (list != null) list.add(txtField);
+		if (groupList != null) groupList.add(txtField);
 		txtField.addKeyListener(listener);
 		return txtField;
 	}
@@ -314,7 +375,7 @@ public class Main implements KeyListener, ActionListener  {
 		
 		lblPrice = createLabel(mainPanel,"Car price:", tahomaBold, leftColUpperLblBound, upperPeriod, 0);
 		lblEngineSize = createLabel(mainPanel, "Engine size (*.*L):", tahomaBold, leftColUpperLblBound, upperPeriod, 1);
-		
+			
 		lblOriginalPriceHeader = createLabel(mainPanel, "Original Price", tahomaBold, leftColLowerLblBound, lowerPeriod, 0);
 		lblGamePriceHeader =  createLabel(mainPanel, "In-game Price", tahomaBold, leftColLowerLblBound, lowerPeriod, 1);
 		lblTaxHeader = createLabel(mainPanel, "Tax", tahomaBold, leftColLowerLblBound, lowerPeriod, 2);
@@ -331,18 +392,9 @@ public class Main implements KeyListener, ActionListener  {
 	}
 	
 	static void addMainPanelTxtFields() {
-		txtEngineSize = new JTextField(0);
-		txtEngineSize.setBounds(171, 78, 144, 19);
-		mainPanel.add(txtEngineSize);
-		txtEngineSize.setColumns(10);
-		txtEngineSize.addKeyListener(listener);
-
-		txtPriceField = new JTextField(0);
-		txtPriceField.setBounds(171, 49, 144, 19);
-		mainPanel.add(txtPriceField);
-		txtPriceField.setColumns(10);
-		txtPriceField.addKeyListener(listener);
-	
+		int upperPeriod = 29;
+		txtPriceField = createTxtField(mainPanel, mainTxtList, 10, listener, mainTxtFieldBound, upperPeriod, 0);
+		txtEngineSize = createTxtField(mainPanel, mainTxtList, 10, listener, mainTxtFieldBound, upperPeriod, 1);
 	}
 	
 	static void addEditPanel() {
@@ -360,13 +412,13 @@ public class Main implements KeyListener, ActionListener  {
 
 	static void addEditPanelLabels() {
 		
-		lblWeight = createLabel(editPanel, "Weight", tahomaBold, editPanelMainLblBound, editPanelPeriod, 0);
-		lblPriceKoeficient = createLabel(editPanel, "Price Coeficient", tahomaBold, editPanelMainLblBound, editPanelPeriod, 1);
-		lblPriceRange = createLabel(editPanel, "Price range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 2);
-		lblTaxRange = createLabel(editPanel, "Tax range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 3);
-		lblTopSpeedRange = createLabel(editPanel, "Top Speed range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 4);
-		lblAccelerationRange = createLabel(editPanel, "Acceleration range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 5);
-		lblInertiaRange = createLabel(editPanel, "Inertia range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 6);
+		lblWeight = 			createLabel(editPanel, "Weight", tahomaBold, editPanelMainLblBound, editPanelPeriod, 0);
+		lblPriceKoeficient = 	createLabel(editPanel, "Price Coeficient", tahomaBold, editPanelMainLblBound, editPanelPeriod, 1);
+		lblPriceRange = 		createLabel(editPanel, "Price range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 2);
+		lblTaxRange = 			createLabel(editPanel, "Tax range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 3);
+		lblTopSpeedRange = 		createLabel(editPanel, "Top Speed range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 4);
+		lblAccelerationRange = 	createLabel(editPanel, "Acceleration range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 5);
+		lblInertiaRange = 		createLabel(editPanel, "Inertia range", tahomaBold, editPanelMainLblBound, editPanelPeriod, 6);
 		
 		lblTo1 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, editPanelPeriod, 0);
 		lblTo2 = createLabel(editPanel, "to", tahomaBold, editPanelToLblBound, editPanelPeriod, 1);
@@ -379,44 +431,55 @@ public class Main implements KeyListener, ActionListener  {
 	
 	static void addEditPanelTxtFields() {
 		
-		txtMinPrice = createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod, 0);
-		txtMinTax = createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod,1);
-		txtMinTopSpeed = createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod, 2);
-		txtMinAcc = createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod, 3);
-		txtMinInertia = createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod, 4);
+		txtMinPrice = 		createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod, 0);
+		txtMinTax = 		createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod, 1);
+		txtMinTopSpeed = 	createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod, 2);
+		txtMinAcc = 		createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod, 3);
+		txtMinInertia = 	createTxtField(editPanel, minEditTxtList, 1, listener, editPanelTxtLeftColBound, editPanelPeriod, 4);
 		
-		txtMaxPrice = createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 0);
-		txtMaxTax = createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 1);
-		txtMaxTopSpeed	= createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 2);	
-		txtMaxAcc = createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 3);
-		txtMaxInertia = createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 4);
+		txtMaxPrice = 		createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 0);
+		txtMaxTax = 		createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 1);
+		txtMaxTopSpeed	= 	createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 2);	
+		txtMaxAcc = 		createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 3);
+		txtMaxInertia = 	createTxtField(editPanel, maxEditTxtList, 1, listener, editPanelTxtRightColBound, editPanelPeriod, 4);
 		
-		txtPriceKoef = createTxtField(editPanel, null, 1, listener, editPanelTxtUpperBound, 23, 0);
-		txtWeight = createTxtField(editPanel, null, 1, listener, editPanelTxtUpperBound, 23, 1);
+		txtWeight = 		createTxtField(editPanel, editTxtMainList, 1, listener, editPanelTxtUpperBound, 23, 0);
+		txtPriceKoef = 		createTxtField(editPanel, editTxtMainList, 1, listener, editPanelTxtUpperBound, 23, 1);
+		
+		editTxtRangesList.addAll(minEditTxtList);
+		editTxtRangesList.addAll(maxEditTxtList);
 	}
 
 	static void addEditPanelButtons() {
-		btnEditRemoveCategory = new JButton("Remove");
-		btnEditRemoveCategory.setBounds(20, 233, 145, 21);
-		btnEditRemoveCategory.addActionListener(listener);
-		editPanel.add(btnEditRemoveCategory);
 		
 		btnEdit = new JButton("Edit");
-		btnEdit.setEnabled(false);
 		btnEdit.addActionListener(listener);
-		btnEdit.setBounds(195, 233, 140, 21);
+		btnEdit.setBounds(195, 233, 145, 21);
 		editPanel.add(btnEdit);
+		btnEdit.setEnabled(false);
 		
-		btnEditBack = new JButton("<");
-		btnEditBack.addActionListener(listener);
-		
-		btnEditBack.setBounds(20, 18, 41, 21);
-		editPanel.add(btnEditBack);
-		
-		btnGlobalSettings = new JButton("G");
-		btnGlobalSettings.setBounds(289, 18, 45, 21);
-		btnGlobalSettings.addActionListener(listener);
-		editPanel.add(btnGlobalSettings);
+		if (configFile.exists()) {
+			btnEditRemoveCategory = new JButton("Remove");
+			btnEditRemoveCategory.setBounds(20, 233, 145, 21);
+			btnEditRemoveCategory.addActionListener(listener);
+			editPanel.add(btnEditRemoveCategory);
+			
+			btnEditBack = new JButton("<");
+			btnEditBack.addActionListener(listener);
+			btnEditBack.setBounds(20, 18, 41, 21);
+			editPanel.add(btnEditBack);
+			
+			btnGlobalSettings = new JButton("G");
+			btnGlobalSettings.setBounds(289, 18, 45, 21);
+			btnGlobalSettings.addActionListener(listener);
+			editPanel.add(btnGlobalSettings);
+		}
+	}
+	
+	static void addGlobalSettingElements() {
+		addGlobalSettingsButtons();
+		addGlobalSettingsLabels();
+		addGlobalSettingsTxtFields();
 	}
 	
 	static void addGlobalSettingPanel() {
@@ -428,16 +491,16 @@ public class Main implements KeyListener, ActionListener  {
 	
 	static void addGlobalSettingsLabels() {
 		int upperPeriod = 40;
-		lblEngineKoef = createLabel(globalSettingsPanel, "Engine coefficient", tahomaBold, globalSettingPanelMainLblBound, upperPeriod, 0);
-		lblMinEngineSize = createLabel(globalSettingsPanel, "Min engine volume", tahomaBold, globalSettingPanelMainLblBound, upperPeriod, 1);
-		lblMaxEngineSize = createLabel(globalSettingsPanel, "Max engine volume", tahomaBold, globalSettingPanelMainLblBound, upperPeriod, 2);
+		lblEngineKoef = 	createLabel(globalSettingsPanel, "Engine coefficient", tahomaBold, globalSettingPanelMainLblBound, upperPeriod, 0);
+		lblMinEngineSize = 	createLabel(globalSettingsPanel, "Min engine volume", tahomaBold, globalSettingPanelMainLblBound, upperPeriod, 1);
+		lblMaxEngineSize = 	createLabel(globalSettingsPanel, "Max engine volume", tahomaBold, globalSettingPanelMainLblBound, upperPeriod, 2);
 	}
 	
 	static void addGlobalSettingsTxtFields() {
 		int upperPeriod = 40;
-		txtEngineKoef = createTxtField(globalSettingsPanel, null, 10, listener, globalSettingPanelTxtBound, upperPeriod, 0);
-		txtMinEngineSize = createTxtField(globalSettingsPanel, null, 10, listener, globalSettingPanelTxtBound, upperPeriod, 1);
-		txtMaxEngineSize = createTxtField(globalSettingsPanel, null, 10, listener, globalSettingPanelTxtBound, upperPeriod, 2);
+		txtEngineKoef = 	createTxtField(globalSettingsPanel, globalTxtList, 10, listener, globalSettingPanelTxtBound, upperPeriod, 0);
+		txtMinEngineSize = 	createTxtField(globalSettingsPanel, globalTxtList, 10, listener, globalSettingPanelTxtBound, upperPeriod, 1);
+		txtMaxEngineSize = 	createTxtField(globalSettingsPanel, globalTxtList, 10, listener, globalSettingPanelTxtBound, upperPeriod, 2);
 	}
 	
 	static void addGlobalSettingsButtons() {
@@ -448,19 +511,39 @@ public class Main implements KeyListener, ActionListener  {
 		globalSettingsPanel.add(btnGlobalBack);
 		
 		btnGlobalEdit = new JButton("Edit");
-		btnGlobalEdit.setEnabled(true);
+		btnGlobalEdit.setEnabled(false);
 		btnGlobalEdit.addActionListener(listener);
 		btnGlobalEdit.setBounds(195, 233, 145, 21);
 		globalSettingsPanel.add(btnGlobalEdit);
 		
 	}
 	
+	static void editBtnSwap() {
+		System.out.println("isBtnToEdit = "+isEditBtnEditing);
+		if (isEditBtnEditing) {
+			System.out.println("Swapped from Edit to Add");
+			btnEdit.setText("Add");
+			isEditBtnEditing = false;
+			return;
+		}
+		if (!isEditBtnEditing) {
+			System.out.println("Swapped from Add to Edit");
+			btnEdit.setText("Edit");
+			isEditBtnEditing = true;
+			return;
+		}
+	}
+	
 	// Button actions
 	static void editButtonAction() {
-		checkTxtFieldValidity();
-		if (isBtnToEdit) {
+		checkEditTxtFieldValidity();
+		if (isEditBtnEditing) {
 			setTxtValuesToObject();
 			writeEditedDataToConfig();
+		}
+		if (!isEditBtnEditing) {
+			addNewCategory();
+			if (isCreatingNewConfig) createNewConfigPart2();;
 		}
 		refreshComboBox();
 	}
@@ -469,7 +552,8 @@ public class Main implements KeyListener, ActionListener  {
 		isEditing = false;
 		swapToPanel(mainPanel);
 		refreshComboBox();
-		comboBox.setSelectedIndex(0);
+		comboBox.setSelectedIndex((int)lastCat);
+		checkMainTxtFields();
 	}
 	
 	static void editRemoveButtonAction() {
@@ -488,6 +572,7 @@ public class Main implements KeyListener, ActionListener  {
 		addGlobalSettingsLabels();
 		addGlobalSettingsTxtFields();
 		addGlobalSettingsButtons();
+		setGlobalSettingsTxtFields();
 	}
 	
 	static void globalSettingBackButtonAction() {
@@ -495,7 +580,9 @@ public class Main implements KeyListener, ActionListener  {
 	}
 	
 	static void globalSettingEditButtonAction() {
-		
+		writeGlobalEditedToMap();
+		writeEditedDataToConfig();
+		if (btnGlobalEdit.getText().equals("Add")) createNewConfigPart3();
 	}
 
 	// ComboBox Functionality Methods
@@ -519,7 +606,6 @@ public class Main implements KeyListener, ActionListener  {
 	static void fillComboBox() {
 		int size = Category.all.size();
 		comboBoxElements = new String[size+1];
-		System.out.println("Length: "+comboBoxElements.length);
 		for (int i = 0; i < comboBoxElements.length-1; i++) {
 			comboBoxElements[i] = Category.all.get(i).name;
 		}
@@ -553,12 +639,21 @@ public class Main implements KeyListener, ActionListener  {
 	
 	// Panel Switching Methods
 	static void goDark() {
+		// don't ask, for now I really cannot think of a better way. Might do with arrays and iterating.
 		try {
-			mainPanel.setVisible(false);
-			editPanel.setVisible(false);
-			globalSettingsPanel.setVisible(false);			
+			try {
+				mainPanel.setVisible(false);
+			} catch (Exception e) {
+			}
+			try {
+				editPanel.setVisible(false);
+			} catch (Exception e) {
+			}
+			try {
+				globalSettingsPanel.setVisible(false);			
+			} catch (Exception e) {
+			}
 		} catch (Exception e) {
-			// TODO: handle exception
 		}
 	}
 	
@@ -573,6 +668,7 @@ public class Main implements KeyListener, ActionListener  {
 		double methodLocalEki = 0;
 		double methodLocalPercent = 0;
 		try {
+			System.out.println("Input price = " +inputPrice);
 			methodLocalPrice = inputPrice - minPrice;
 			methodLocalEki = inputEngineSize * (inputPrice * engineKoef / weight);
 			methodLocalPercent = methodLocalPrice / (maxPrice - minPrice) * (methodLocalEki);
@@ -583,6 +679,7 @@ public class Main implements KeyListener, ActionListener  {
 			engineInertia = (maxInertia + ((minInertia - maxInertia) * methodLocalPercent / 2));
 			
 			gamePrice = inputPrice + (inputPrice / 100 * priceKoef);
+			printMathDebug(printDebugs); // DEBUG TO DELETE PLS
 			setResultsToLabels();
 
 		} catch (Exception e) {
@@ -595,27 +692,30 @@ public class Main implements KeyListener, ActionListener  {
 
 	static void tryMath() {
 		if (isEngineSizeSafe && isPriceSafe) {
-			System.out.println("is safe!");
 			doMath();
 		}
 	}
 	
 	// Value operation methods
 	static void setResultsToLabels() {
-		System.out.println("Setting results");
 		lblOriginalPriceValue.setText("$ "+String.valueOf(inputPrice));
 		lblGamePriceValue.setText("$ "+String.valueOf(gamePrice));
 		lblTaxValue.setText("$ "+String.valueOf(tax));
 		lblTopSpeedValue.setText(String.valueOf(topSpeed)+" KM/h");
 		lblAccelerationValue.setText(String.valueOf(acceleration));
 		lblEngineInertiaValue.setText(String.valueOf(engineInertia));
-		
 	}
 	
 	static void setGlobalValuesToVariables() {
 		engineKoef = getConfigValue("engineKoef");
 		maxEngineSize  = getConfigValue("maxEngineSize");
 		minEngineSize  = getConfigValue("minEngineSize");
+	}
+	
+	static void writeGlobalEditedToMap() {
+		globalSettingValues.put("engineKoef", getTxtValueAsDouble(txtEngineKoef));
+		globalSettingValues.put("maxEngineSize", getTxtValueAsDouble(txtMaxEngineSize));
+		globalSettingValues.put("minEngineSize", getTxtValueAsDouble(txtMinEngineSize));
 	}
 	
 	
@@ -670,28 +770,47 @@ public class Main implements KeyListener, ActionListener  {
 		Category.all.get(index).name = "Category "+(index+1)
 				+" ("+txtMinPrice.getText()+"-"+txtMaxPrice.getText()+")";
 	}
+
+	static void setGlobalSettingsTxtFields() {
+		txtEngineKoef.setText(String.valueOf(getConfigValue("engineKoef")));
+		txtMaxEngineSize.setText(String.valueOf(getConfigValue("maxEngineSize")));
+		txtMinEngineSize.setText(String.valueOf(getConfigValue("minEngineSize")));
+	}
+	
+	static void clearTxtFields() {
+		for (JTextField f : editTxtRangesList) {
+			f.setText(null);
+		}
+		txtPriceKoef.setText(null);
+		txtWeight.setText(null);
+	}
+	
 	
 	// File I/O
 	static void readConfig () {	
-		// TODO - file existance; safety flag, if something does not exist
-		// experimenting with forloops and ways to make them 
-		// stop w/o nums but empty lines
-		
-		File file = new File(root+"values.conf");
 		int counter = 0;
+		if (!configFile.exists()) {
+			System.out.println("CONFIG NONEXISTANT!");
+			createNewConfig();
+			return;
+		}
 		try {
-			Scanner scan = new Scanner(file);
+			Scanner scan = new Scanner(configFile);
 			while(scan.hasNextLine()) {
 				String line = scan.nextLine();
+				if (line.equals("!")) {
+					popupIncompleteConfig();
+					return;
+				}
 				if (line.equals("[Global settings]")) {
-					for (int i = 0; i < 4; i++) {
+					for (int i = 0; i < 3; i++) {
 						String[] _line = scan.nextLine().split("=");
 						String key = _line[0].trim();
+						if (_line[0].equals("null")) _line[0] = "0";
 						Double value = Double.parseDouble(_line[1].trim());
 						globalSettingValues.put(key, value);		
 					}
 				}
-				double lastCat = globalSettingValues.get("lastCat"); // this could have use
 				if (line.contains("[Category")) {
 					counter++;
 					HashMap <String, Double> _objMap = new HashMap<String, Double>();
@@ -714,13 +833,13 @@ public class Main implements KeyListener, ActionListener  {
 			System.out.println(e.getStackTrace()[0]);
 			System.out.println();
 		}	
-		Category.printAll();
 		isInitialized = true;
+		startGUI();
 	}
 	static void writeGlobalSettings(FileWriter fw) {
 		try {
+		if (isCreatingNewConfig) fw.write("!\n");
 		fw.write("[Global settings]"+"\n");
-		fw.write("lastCat  = "+globalSettingValues.get("lastCat")+"\n");
 		fw.write("engineKoef = "+globalSettingValues.get("engineKoef")+"\n");
 		fw.write("minEngineSize = "+globalSettingValues.get("minEngineSize")+"\n");
 		fw.write("maxEngineSize = "+globalSettingValues.get("maxEngineSize")+"\n");
@@ -752,160 +871,201 @@ public class Main implements KeyListener, ActionListener  {
 	}
 
 	static void writeEditedDataToConfig() {
-		File file = new File(root+"values.conf");
+		System.out.println("usCretingNew Conf? = "+isCreatingNewConfig);
 		try {
-			FileWriter fw = new FileWriter(file.getAbsoluteFile(), overwrite);
-			Scanner scan = new Scanner(file);
+			FileWriter fw = new FileWriter(configFile.getAbsoluteFile(), overwrite);
 			writeGlobalSettings(fw);
-			for (int i = 0;i < comboBox.getItemCount()-1; i++) {
+			for (int i = 0;i < Category.all.size(); i++) {
 				Category cat = Category.all.get(i);
 				writeCategoryValuesToFile(fw, cat);
 			}
 			fw.close();
-			scan.close();
 		} catch (Exception e) {
 			System.out.println("Bad!");
-			System.out.println();
-			System.out.println(e);
-			System.out.println(e.getStackTrace()[0]);
-			System.out.println();
+			System.err.println();
 		}
 	}
 	
+	static void updateLastCat( ) {
+		if (isLastElement()) return;
+		lastCat = comboBox.getSelectedIndex();
+		globalSettingValues.put("lastCat", (double) lastCat);
+	}
 	
+	static void addNewCategory() {
+		// yes, this is terrible, I know
+		HashMap<String, Double> _objMap = new HashMap<String, Double>();	
+		_objMap.put("weight", Double.parseDouble(txtWeight.getText()));
+		_objMap.put("priceKoef", Double.parseDouble(txtPriceKoef.getText()));
+		_objMap.put("minPrice", Double.parseDouble(txtMinPrice.getText()));
+		_objMap.put("maxPrice", Double.parseDouble(txtMaxPrice.getText()));
+		_objMap.put("minTax", Double.parseDouble(txtMinTax.getText()));
+		_objMap.put("maxTax", Double.parseDouble(txtMaxTax.getText()));
+		_objMap.put("minTopSpeed", Double.parseDouble(txtMinTopSpeed.getText()));
+		_objMap.put("maxTopSpeed", Double.parseDouble(txtMaxTopSpeed.getText()));
+		_objMap.put("minAcc", Double.parseDouble(txtMinAcc.getText()));
+		_objMap.put("maxAcc", Double.parseDouble(txtMaxAcc.getText()));
+		_objMap.put("minInertia", Double.parseDouble(txtMinInertia.getText()));
+		_objMap.put("maxInertia", Double.parseDouble(txtMaxInertia.getText()));
+		new Category(Category.getEmptyPlaceInAll(), _objMap);
+		writeEditedDataToConfig();
+		editBtnSwap();
+	}
 	
+	static void createNewConfig() {
+		JOptionPane.showMessageDialog(frame, "Config file is missing. Insert new values!\n"
+				+ "(Input fields might be invisble!)");
+		try {
+			isCreatingNewConfig = true;
+			createFrame();
+			addEditPanel();
+			addEditPanelElements();
+			editBtnSwap();
+			editPanel.remove(btnEditBack);
+			editPanel.remove(btnGlobalSettings);
+			editPanel.remove(btnEditRemoveCategory);
+			editPanel.repaint();
+			
+		} catch (Exception e) {
+			System.out.println("uh ohhh");
+			System.out.println(e);
+			System.out.println(e.getStackTrace()[0]);
+		}
+		
+	}
 	
+	static void createNewConfigPart2() {
+		System.out.println("Part 2 incoming!");
+		addGlobalSettingPanel();
+		addGlobalSettingElements();
+		globalSettingsPanel.remove(btnGlobalBack);
+		swapToPanel(globalSettingsPanel);
+		btnGlobalEdit.setText("Add");
+	}
 	
+	static void createNewConfigPart3() {
+		System.out.println("Part 3 incoming!");
+		frame.setVisible(false);
+		isCreatingNewConfig = false;
+		writeEditedDataToConfig();
+		startGUI();
+	}
+	
+	static void startNewCategoryInput() {
+		isRemovable = false;
+		clearTxtFields();
+		editBtnSwap();
+		btnEditRemoveCategory.setEnabled(isRemovable);
+	}
+	
+	static void popupIncompleteConfig() {
+		JOptionPane.showMessageDialog(frame, "Config file is corrupted. Try again!");
+		createNewConfig();
+	}
+	
+	// Validating methods
 	public static boolean isDoubleRegex(String elem) {
-		String regex = ".*\\d.{1}\\..*\\d";
-		return Pattern.compile(regex).matcher(elem).find();
+		try {
+			Double.parseDouble(elem);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 	
 	public static boolean isIntish(String elem) {
-		String regex = ".*\\d";
-		return Pattern.compile(regex).matcher(elem).find();
+		try {
+			Integer.parseInt(elem);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	public static boolean isNumeric(String elem) {
+		return isDoubleRegex(elem) || isIntish(elem);
 	}
 
-	
 	static Double getConfigValue(String key) {
 		return globalSettingValues.get(key);
 	}
 	
-
-		
+	static double getTxtValueAsDouble(JTextField txt) {
+		return Double.parseDouble(txt.getText());
+	}
 	
+	static boolean areEditTxtFieldsValid() {
+		return areTxtListNumerics(editTxtMainList) && areTxtListNumerics(editTxtRangesList);	
+	}
 
+	static boolean areTxtListNumerics(ArrayList<JTextField> list) {
+		boolean fl = true;
+		for (JTextField v : list) {
+			if (!isTxtNumeric(v)) fl = false;
+		}
+		return fl;
+	}
 	
-
+	static boolean isTxtNumeric(JTextField txtField) {
+		String text = txtField.getText();
+		if (!isNumeric(text)) {
+			txtField.setForeground(invalidTextColor);
+			return false;
+		}
+		txtField.setForeground(generalTextColor);
+		return true;
+	}
 	
-	static void checkTxtField(JTextField txtField, Double internalVar, Double min, 
+	static void checkTxtLimits(JTextField txtField, Double internalVar, Double min, 
 							  Double max, boolean flag) {
 		try {
 			internalVar = Double.parseDouble(txtField.getText());
 			if (internalVar < min ||
 				internalVar > max ||
-				isDoubleRegex(txtField.getText())) {
+				!isDoubleRegex(txtField.getText())) {
 				txtField.setForeground(invalidTextColor);
-				flag = false;
+				if (flag == isPriceSafe) isPriceSafe = false;
+				if (flag == isEngineSizeSafe) isEngineSizeSafe = false;
 				return;
 			}
 			
 			if (internalVar >= min &&
 				internalVar <= max) {
 				txtField.setForeground(generalTextColor);
-				flag = true;
+				if (txtField == txtPriceField) {
+					System.out.println("PRICE IS SAFE");
+					isPriceSafe = true;
+					inputPrice = internalVar;
+				}
+				if (txtField == txtEngineSize) {
+					System.out.println("ENGINE IS SAFE");
+					isEngineSizeSafe = true;
+					inputEngineSize = internalVar;
+				}
+				return;
 			}
 			
 		} catch (Exception e2) {
-//			System.out.println("Invalid char in Price!");
 			txtField.setForeground(invalidTextColor);		
 		}
 		
 	}
 	
-
+	
 	static boolean isLastElementAndIsEditing(boolean editing) {
-		return comboBox.getSelectedIndex()+1 == comboBox.getItemCount() && isEditing == editing;
+		return isLastElement() && isEditing == editing;
 	}
 	
 	static boolean isNotLastElementAndIsEditing(boolean editing) {
-		return comboBox.getSelectedIndex()+1 != comboBox.getItemCount() && isEditing == editing;
+		return !isLastElement() && isEditing == editing;
 	}
 	
-
-	public static void changeCategories() {
-		if (isLastElementAndIsEditing(false)) {
-			System.out.println("Changing panel to edit.");
-			changePanelToEdit();
-			changeCategoryVariables(comboBox.getSelectedIndex());
-		}
-		if (isLastElementAndIsEditing(true)) {
-			System.out.println("Starting new cat input.");
-			startNewCategoryInput();
-		}
-		
-		System.out.println("# selected + 1 = "+(comboBox.getSelectedIndex()+1));
-		System.out.println("# item counts = "+comboBox.getItemCount());
-		System.out.println("# is editing = "+isEditing);
-		
-		if (isNotLastElementAndIsEditing(true)) {
-			isRemovable = true;
-			btnEditRemoveCategory.setEnabled(isRemovable);
-			changeCategoryVariables(comboBox.getSelectedIndex());
-			setValuesToTxt();
-		}
-		
-		if (isNotLastElementAndIsEditing(false)) {
-			changeCategoryVariables(comboBox.getSelectedIndex());
-		}
-		
-		lastCat = (double)comboBox.getSelectedIndex();
-
-		checkPriceField();
-		checkEngineSizeField();
+	static boolean isLastElement() {
+		return comboBox.getSelectedIndex() == comboBox.getItemCount()-1;
 	}
 	
-
 	
-	static void changePanelToEdit() {
-		isEditing = true;
-		isRemovable = true;
-		swapToPanel(editPanel);
-		refreshComboBox();
-		comboBox.setSelectedIndex(0);
-		System.out.println(comboBoxElements[comboBoxElements.length-1]);
-		
-	}
-	
-	static void startNewCategoryInput() {
-		isRemovable = false;
-		clearTxtFields();
-		editBtnToAddBtn();
-		btnEditRemoveCategory.setEnabled(isRemovable);
-	}
-	
-	static void clearTxtFields() {
-		txtMinAcc.setText(null);
-		txtMaxAcc.setText(null);
-		txtMinInertia.setText(null);
-		txtMaxInertia.setText(null);
-		txtMaxPrice.setText(null);
-		txtMinPrice.setText(null);
-		txtMaxTax.setText(null);
-		txtMinTax.setText(null);
-		txtMaxTopSpeed.setText(null);
-		txtMinTopSpeed.setText(null);
-		txtPriceKoef.setText(null);
-		txtWeight.setText(null);
-	}
-
-	
-	static void editBtnToAddBtn() {
-		btnEdit.setText("Add");
-		isAdding = true;
-	}
-	
-	static void checkTxtFieldValidity() {
+	static void checkEditTxtFieldValidity() {
 		boolean flag = false;
 		for (int i = 0; i < minEditTxtList.size(); i++) {
 			if(isMinAndMaxTxtValid(minEditTxtList.get(i), 
@@ -915,22 +1075,21 @@ public class Main implements KeyListener, ActionListener  {
 			}
 			flag = false;
 		}
-		if (flag) {
-			isBtnToEdit = true;
+		if (flag && !btnEdit.getText().equals("Add")) {
+			isEditBtnEditing = true;
 		}
-		btnEdit.setEnabled(flag);
 	}
 	
 	static boolean isMinAndMaxTxtValid(JTextField minValue, JTextField maxValue) {
 		String min = minValue.getText();
 		String max = maxValue.getText();
 		
-		if (!isDoubleRegex(min) && !isIntish(min)) {
+		if (!isNumeric(min)) {
 			minValue.setForeground(invalidTextColor);
 			return false;
 		}
 		
-		if(!isDoubleRegex(max) && !isIntish(max)) {
+		if(!isNumeric(max)) {
 			maxValue.setForeground(invalidTextColor);
 			return false;
 		}
@@ -947,6 +1106,16 @@ public class Main implements KeyListener, ActionListener  {
 	}
 	
 
+	//DEBUG METHODS
+	static void printMathDebug(boolean print) {
+		if (!print) return;
+		System.out.println("Game Price = "+gamePrice);
+		System.out.println("Tax = " +tax);
+		System.out.println("Speed = " +topSpeed);
+		System.out.println("Acceleration = " +acceleration);
+		System.out.println("Engine Inertia = " +engineInertia);
+	}
+	
 	
 	// Garbage so eclipse does not cry
 	@Override

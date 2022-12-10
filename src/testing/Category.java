@@ -43,6 +43,24 @@ public class Category {
 		all.add(this);
 		System.out.println("Initialized " +this.name);
 	}
+	
+	public static int getEmptyPlaceInAll() {
+		int number = 1;
+		try {
+			for (Category c : all) {
+				int _n = Integer.parseInt(c.name.substring(8, 10).trim());
+				if (number < _n) {
+					return number;
+				}
+				number++;
+			}
+		} catch (Exception e) {
+			System.out.println("The developer of this method is a dumbass.");
+			System.out.println(e);
+			System.out.println(e.getStackTrace()[0]);
+		}
+		return Category.all.size()+1;
+	}
 
 	public static void printAll() {
 		System.out.println(all.toString());
